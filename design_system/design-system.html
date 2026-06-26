@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B&amp;C — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&amp;family=Inter:wght@300;400;500;600;700&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet">
+<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+<style>
+<style>
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+--gold: #C8A97E;
+--gold-light: #D4BC96;
+--gold-dark: #A8885E;
+--black: #0A0A0A;
+--black-light: #141414;
+--black-medium: #1A1A1A;
+--white: #FAFAF9;
+--white-dim: #E8E6E1;
+--gray: #6B6B6B;
+--gray-light: #999999;
+--serif: 'Playfair Display', Georgia, serif;
+--sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+--display: 'Bebas Neue', Impact, sans-serif;
+--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+html {
+scroll-behavior: smooth;
+overflow-x: hidden;
+scrollbar-width: thin;
+scrollbar-color: var(--gold) var(--black);
+}
+body {
+font-family: var(--sans);
+background: var(--black);
+color: var(--white);
+overflow-x: hidden;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; color: inherit; }
+button { border: none; background: none; cursor: pointer; font-family: inherit; }
+/* ========== NAVIGATION ========== */
+.nav {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+z-index: 1000;
+padding: 1.5rem 3rem;
+display: flex;
+align-items: center;
+justify-content: space-between;
+transition: all 0.4s var(--ease-out-quart);
+}
+.nav.scrolled {
+padding: 1rem 3rem;
+background: rgba(10, 10, 10, 0.95);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+border-bottom: 1px solid rgba(200, 169, 126, 0.1);
+}
+.nav-logo {
+font-family: var(--display);
+font-size: 1.8rem;
+letter-spacing: 0.15em;
+color: var(--white);
+display: flex;
+align-items: center;
+gap: 0.75rem;
+}
+.nav-logo .logo-ampersand {
+color: var(--gold);
+font-family: var(--serif);
+font-style: italic;
+font-size: 1.4rem;
+}
+.nav-links {
+display: flex;
+align-items: center;
+gap: 2.5rem;
+list-style: none;
+}
+.nav-links a {
+font-size: 0.75rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(--gray-light);
+transition: color 0.3s ease;
+position: relative;
+}
+.nav-links a::after {
+content: '';
+position: absolute;
+bottom: -4px;
+left: 0;
+width: 0;
+height: 1px;
+background: var(--gold);
+transition: width 0.3s var(--ease-out-expo);
+}
+.nav-links a:hover { color: var(--gold); }
+.nav-links a:hover::after { width: 100%; }
+.nav-cta {
+font-size: 0.7rem;
+letter-spacing: 0.25em;
+text-transform: uppercase;
+padding: 0.75rem 1.75rem;
+border: 1px solid var(--gold);
+color: var(--gold);
+transition: all 0.4s ease;
+}
+.nav-cta:hover {
+background: var(--gold);
+color: var(--black);
+}
+.nav-hamburger {
+display: none;
+flex-direction: column;
+gap: 6px;
+cursor: pointer;
+z-index: 1001;
+}
+.nav-hamburger span {
+display: block;
+width: 28px;
+height: 1px;
+background: var(--white);
+transition: all 0.3s ease;
+}
+.nav-hamburger.active span:nth-child(1) {
+transform: rotate(45deg) translate(5px, 5px);
+}
+.nav-hamburger.active span:nth-child(2) { opacity: 0; }
+.nav-hamburger.active span:nth-child(3) {
+transform: rotate(-45deg) translate(5px, -5px);
+}
+/* Mobile nav overlay */
+.mobile-nav {
+position: fixed;
+inset: 0;
+background: var(--black);
+z-index: 999;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 2rem;
+opacity: 0;
+visibility: hidden;
+transition: all 0.5s var(--ease-out-expo);
+}
+.mobile-nav.active {
+opacity: 1;
+visibility: visible;
+}
+.mobile-nav a {
+font-family: var(--display);
+font-size: 2.5rem;
+letter-spacing: 0.15em;
+color: var(--white-dim);
+transition: color 0.3s ease;
+}
+.mobile-nav a:hover { color: var(--gold); }
+/* ========== HERO SECTION ========== */
+.hero {
+min-height: 100vh;
+display: grid;
+grid-template-columns: 1fr 1fr;
+position: relative;
+overflow: hidden;
+}
+.hero-content {
+display: flex;
+flex-direction: column;
+justify-content: center;
+padding: 8rem 5rem 5rem;
+position: relative;
+z-index: 2;
+}
+.hero-tag {
+display: inline-flex;
+align-items: center;
+gap: 1rem;
+margin-bottom: 2.5rem;
+opacity: 0;
+transform: translateY(30px);
+animation: fadeUp 0.8s var(--ease-out-expo) 0.8s forwards;
+}
+.hero-tag-line {
+width: 40px;
+height: 1px;
+background: var(--gold);
+}
+.hero-tag-text {
+font-size: 0.7rem;
+letter-spacing: 0.35em;
+text-transform: uppercase;
+color: var(--gold);
+}
+.hero-title {
+font-family: var(--display);
+font-size: clamp(3.5rem, 7vw, 7rem);
+line-height: 0.95;
+letter-spacing: 0.04em;
+color: var(--white);
+margin-bottom: 2rem;
+}
+.hero-title span {
+display: block;
+opacity: 0;
+transform: translateY(60px);
+}
+.hero-title span:nth-child(1) { animation: fadeUp 1s var(--ease-out-expo) 1s forwards; }
+.hero-title span:nth-child(2) { animation: fadeUp 1s var(--ease-out-expo) 1.15s forwards; }
+.hero-title span:nth-child(3) { animation: fadeUp 1s var(--ease-out-expo) 1.3s forwards; }
+.hero-title .title-stroke {
+-webkit-text-stroke: 1.5px var(--white);
+color: transparent;
+}
+.hero-title .title-gold {
+color: var(--gold);
+font-family: var(--serif);
+font-style: italic;
+font-size: 0.65em;
+font-weight: 400;
+}
+.hero-desc {
+font-size: 1rem;
+line-height: 1.8;
+color: var(--gray-light);
+max-width: 420px;
+margin-bottom: 3rem;
+opacity: 0;
+transform: translateY(30px);
+animation: fadeUp 0.8s var(--ease-out-expo) 1.5s forwards;
+}
+.hero-actions {
+display: flex;
+align-items: center;
+gap: 2rem;
+opacity: 0;
+transform: translateY(30px);
+animation: fadeUp 0.8s var(--ease-out-expo) 1.7s forwards;
+}
+.btn-primary {
+display: inline-flex;
+align-items: center;
+gap: 1rem;
+background: var(--gold);
+color: var(--black);
+padding: 1.1rem 2.5rem;
+font-size: 0.7rem;
+font-weight: 600;
+letter-spacing: 0.25em;
+text-transform: uppercase;
+transition: all 0.4s var(--ease-out-expo);
+position: relative;
+overflow: hidden;
+}
+.btn-primary::before {
+content: '';
+position: absolute;
+inset: 0;
+background: var(--gold-dark);
+transform: translateX(-101%);
+transition: transform 0.4s var(--ease-out-expo);
+}
+.btn-primary:hover::before { transform: translateX(0); }
+.btn-primary span, .btn-primary .iconify { position: relative; z-index: 1; }
+.btn-outline {
+display: inline-flex;
+align-items: center;
+gap: 0.75rem;
+font-size: 0.75rem;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: var(--white-dim);
+transition: color 0.3s ease;
+}
+.btn-outline:hover { color: var(--gold); }
+.btn-outline .iconify {
+font-size: 1.2rem;
+transition: transform 0.3s ease;
+}
+.btn-outline:hover .iconify { transform: translateX(4px); }
+.hero-image {
+position: relative;
+overflow: hidden;
+}
+.hero-image img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+scale: 1.1;
+animation: heroImgReveal 1.8s var(--ease-out-expo) 0.5s forwards;
+opacity: 0;
+}
+@keyframes heroImgReveal {
+from { opacity: 0; scale: 1.2; }
+to { opacity: 1; scale: 1.05; }
+}
+.hero-image::after {
+content: '';
+position: absolute;
+inset: 0;
+background: linear-gradient(to right, var(--black) 0%, transparent 30%),
+linear-gradient(to top, var(--black) 0%, transparent 20%);
+pointer-events: none;
+}
+/* ========== MARQUEE ========== */
+.marquee-section {
+padding: 2rem 0;
+border-top: 1px solid rgba(200, 169, 126, 0.1);
+border-bottom: 1px solid rgba(200, 169, 126, 0.1);
+overflow: hidden;
+}
+.marquee-track {
+display: flex;
+animation: marqueeScroll 30s linear infinite;
+width: max-content;
+}
+.marquee-item {
+display: flex;
+align-items: center;
+gap: 2.5rem;
+padding: 0 2.5rem;
+white-space: nowrap;
+}
+.marquee-item span {
+font-family: var(--display);
+font-size: 1.3rem;
+letter-spacing: 0.2em;
+color: var(--gray);
+text-transform: uppercase;
+}
+.marquee-item .dot {
+width: 4px;
+height: 4px;
+background: var(--gold);
+border-radius: 50%;
+flex-shrink: 0;
+}
+@keyframes marqueeScroll {
+from { transform: translateX(0); }
+to { transform: translateX(-50%); }
+}
+/* ========== ABOUT / STORY SECTION ========== */
+.about {
+padding: 10rem 5rem;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 5rem;
+align-items: center;
+}
+.about-images {
+position: relative;
+height: 600px;
+}
+.about-img-main {
+width: 70%;
+height: 85%;
+object-fit: cover;
+position: relative;
+z-index: 2;
+filter: grayscale(30%);
+transition: filter 0.6s ease;
+}
+.about-img-main:hover { filter: grayscale(0%); }
+.about-img-secondary {
+position: absolute;
+right: 0;
+bottom: 0;
+width: 55%;
+height: 55%;
+object-fit: cover;
+z-index: 3;
+border: 5px solid var(--black);
+filter: grayscale(30%);
+transition: filter 0.6s ease;
+}
+.about-img-secondary:hover { filter: grayscale(0%); }
+.about-accent {
+position: absolute;
+top: -2rem;
+right: 3rem;
+font-family: var(--display);
+font-size: 10rem;
+line-height: 1;
+color: rgba(200, 169, 126, 0.06);
+z-index: 1;
+user-select: none;
+}
+.about-content { padding-left: 2rem; }
+.section-tag {
+display: inline-flex;
+align-items: center;
+gap: 1rem;
+margin-bottom: 1.5rem;
+}
+.section-tag-line {
+width: 30px;
+height: 1px;
+background: var(--gold);
+}
+.section-tag-text {
+font-size: 0.65rem;
+letter-spacing: 0.35em;
+text-transform: uppercase;
+color: var(--gold);
+}
+.section-title {
+font-family: var(--display);
+font-size: clamp(2.5rem, 4vw, 4rem);
+letter-spacing: 0.05em;
+line-height: 1.05;
+margin-bottom: 2rem;
+}
+.section-title .italic {
+font-family: var(--serif);
+font-style: italic;
+font-weight: 400;
+color: var(--gold);
+}
+.about-text {
+font-size: 0.95rem;
+line-height: 1.9;
+color: var(--gray-light);
+margin-bottom: 2.5rem;
+}
+.about-stats {
+display: flex;
+gap: 3rem;
+padding-top: 2.5rem;
+border-top: 1px solid rgba(200, 169, 126, 0.15);
+}
+.stat-number {
+font-family: var(--display);
+font-size: 2.8rem;
+color: var(--gold);
+letter-spacing: 0.03em;
+}
+.stat-label {
+font-size: 0.7rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(--gray);
+margin-top: 0.25rem;
+}
+/* ========== SERVICES SECTION ========== */
+.services {
+padding: 8rem 5rem 10rem;
+position: relative;
+}
+.services-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-end;
+margin-bottom: 5rem;
+}
+.services-header .section-title { margin-bottom: 0; }
+.services-header-right {
+text-align: right;
+max-width: 350px;
+}
+.services-header-right p {
+font-size: 0.9rem;
+line-height: 1.8;
+color: var(--gray-light);
+}
+.services-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 1px;
+background: rgba(200, 169, 126, 0.1);
+}
+.service-card {
+background: var(--black);
+padding: 3rem 2rem;
+position: relative;
+overflow: hidden;
+transition: all 0.5s var(--ease-out-expo);
+cursor: pointer;
+group: true;
+}
+.service-card::before {
+content: '';
+position: absolute;
+inset: 0;
+background: linear-gradient(135deg, rgba(200, 169, 126, 0.08) 0%, transparent 50%);
+opacity: 0;
+transition: opacity 0.5s ease;
+}
+.service-card:hover::before { opacity: 1; }
+.service-card:hover { transform: translateY(-5px); }
+.service-icon {
+font-size: 2.2rem;
+color: var(--gold);
+margin-bottom: 2rem;
+transition: transform 0.4s var(--ease-out-expo);
+}
+.service-card:hover .service-icon { transform: scale(1.1); }
+.service-name {
+font-family: var(--display);
+font-size: 1.4rem;
+letter-spacing: 0.1em;
+margin-bottom: 0.75rem;
+}
+.service-desc {
+font-size: 0.85rem;
+line-height: 1.7;
+color: var(--gray);
+margin-bottom: 2rem;
+}
+.service-price-row {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding-top: 1.5rem;
+border-top: 1px solid rgba(200, 169, 126, 0.1);
+}
+.service-price {
+font-family: var(--display);
+font-size: 1.6rem;
+color: var(--gold);
+}
+.service-duration {
+font-size: 0.7rem;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: var(--gray);
+}
+.service-arrow {
+position: absolute;
+top: 2rem;
+right: 2rem;
+font-size: 1.2rem;
+color: var(--gold);
+opacity: 0;
+transform: translate(-10px, 10px);
+transition: all 0.4s var(--ease-out-expo);
+}
+.service-card:hover .service-arrow {
+opacity: 1;
+transform: translate(0, 0);
+}
+/* ========== GALLERY SECTION ========== */
+.gallery {
+padding: 0 5rem 10rem;
+}
+.gallery-header {
+text-align: center;
+margin-bottom: 5rem;
+}
+.gallery-grid {
+display: grid;
+grid-template-columns: repeat(12, 1fr);
+grid-template-rows: auto auto;
+gap: 1.5rem;
+}
+.gallery-item {
+overflow: hidden;
+position: relative;
+cursor: pointer;
+}
+.gallery-item:nth-child(1) { grid-column: 1 / 5; grid-row: 1; }
+.gallery-item:nth-child(2) { grid-column: 5 / 9; grid-row: 1; }
+.gallery-item:nth-child(3) { grid-column: 9 / 13; grid-row: 1; }
+.gallery-item:nth-child(4) { grid-column: 1 / 7; grid-row: 2; }
+.gallery-item:nth-child(5) { grid-column: 7 / 13; grid-row: 2; }
+.gallery-item img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+aspect-ratio: 4/3;
+filter: grayscale(40%);
+transition: all 0.6s var(--ease-out-expo);
+}
+.gallery-item:hover img {
+filter: grayscale(0%);
+scale: 1.05;
+}
+.gallery-overlay {
+position: absolute;
+inset: 0;
+background: linear-gradient(to top, rgba(10, 10, 10, 0.8) 0%, transparent 60%);
+display: flex;
+align-items: flex-end;
+padding: 2rem;
+opacity: 0;
+transition: opacity 0.4s ease;
+}
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+.gallery-overlay-text {
+font-family: var(--display);
+font-size: 1.1rem;
+letter-spacing: 0.15em;
+}
+/* ========== TEAM SECTION ========== */
+.team {
+padding: 8rem 5rem 10rem;
+background: var(--black-light);
+}
+.team-header {
+display: flex;
+justify-content: space-between;
+align-items: flex-end;
+margin-bottom: 5rem;
+}
+.team-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 2rem;
+}
+.team-card {
+position: relative;
+overflow: hidden;
+cursor: pointer;
+}
+.team-card-img {
+aspect-ratio: 3/4;
+overflow: hidden;
+}
+.team-card-img img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+filter: grayscale(50%);
+transition: all 0.6s var(--ease-out-expo);
+}
+.team-card:hover .team-card-img img {
+filter: grayscale(0%);
+scale: 1.05;
+}
+.team-card-info {
+padding: 1.5rem 0;
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+}
+.team-card-name {
+font-family: var(--display);
+font-size: 1.3rem;
+letter-spacing: 0.1em;
+}
+.team-card-role {
+font-size: 0.7rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(--gold);
+margin-top: 0.3rem;
+}
+.team-card-socials {
+display: flex;
+gap: 0.75rem;
+}
+.team-card-socials a {
+font-size: 1.1rem;
+color: var(--gray);
+transition: color 0.3s ease;
+}
+.team-card-socials a:hover { color: var(--gold); }
+/* ========== TESTIMONIALS ========== */
+.testimonials {
+padding: 10rem 5rem;
+position: relative;
+overflow: hidden;
+}
+.testimonial-bg-text {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+font-family: var(--display);
+font-size: 20vw;
+color: rgba(200, 169, 126, 0.03);
+white-space: nowrap;
+pointer-events: none;
+user-select: none;
+}
+.testimonials-header {
+text-align: center;
+margin-bottom: 5rem;
+position: relative;
+z-index: 2;
+}
+.testimonial-slider {
+max-width: 800px;
+margin: 0 auto;
+text-align: center;
+position: relative;
+z-index: 2;
+}
+.testimonial-item {
+display: none;
+animation: fadeIn 0.6s ease;
+}
+.testimonial-item.active { display: block; }
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.testimonial-stars {
+display: flex;
+justify-content: center;
+gap: 0.3rem;
+margin-bottom: 2rem;
+}
+.testimonial-stars .iconify {
+font-size: 1.1rem;
+color: var(--gold);
+}
+.testimonial-quote {
+font-family: var(--serif);
+font-size: 1.5rem;
+line-height: 1.8;
+color: var(--white-dim);
+font-style: italic;
+margin-bottom: 2.5rem;
+}
+.testimonial-author-name {
+font-family: var(--display);
+font-size: 1.1rem;
+letter-spacing: 0.15em;
+}
+.testimonial-author-title {
+font-size: 0.7rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+color: var(--gold);
+margin-top: 0.3rem;
+}
+.testimonial-nav {
+display: flex;
+justify-content: center;
+gap: 0.75rem;
+margin-top: 3rem;
+}
+.testimonial-dot {
+width: 8px;
+height: 8px;
+border-radius: 50%;
+border: 1px solid var(--gold);
+background: transparent;
+cursor: pointer;
+transition: all 0.3s ease;
+padding: 0;
+}
+.testimonial-dot.active {
+background: var(--gold);
+transform: scale(1.2);
+}
+/* ========== BOOKING CTA ========== */
+.booking {
+padding: 10rem 5rem;
+position: relative;
+overflow: hidden;
+}
+.booking-inner {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 4rem;
+align-items: center;
+position: relative;
+z-index: 2;
+}
+.booking-image {
+position: relative;
+height: 550px;
+overflow: hidden;
+}
+.booking-image img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+filter: grayscale(20%);
+}
+.booking-image::after {
+content: '';
+position: absolute;
+inset: 0;
+border: 1px solid var(--gold);
+transform: translate(20px, 20px);
+pointer-events: none;
+}
+.booking-form-wrapper {
+padding-left: 2rem;
+}
+.booking-form {
+display: flex;
+flex-direction: column;
+gap: 1.5rem;
+margin-top: 2.5rem;
+}
+.form-group {
+position: relative;
+}
+.form-group label {
+display: block;
+font-size: 0.65rem;
+letter-spacing: 0.25em;
+text-transform: uppercase;
+color: var(--gray-light);
+margin-bottom: 0.5rem;
+}
+.form-group input,
+.form-group select {
+width: 100%;
+padding: 1rem 0;
+background: transparent;
+border: none;
+border-bottom: 1px solid rgba(200, 169, 126, 0.2);
+color: var(--white);
+font-family: var(--sans);
+font-size: 0.95rem;
+outline: none;
+transition: border-color 0.3s ease;
+}
+.form-group input:focus,
+.form-group select:focus {
+border-bottom-color: var(--gold);
+}
+.form-group input::placeholder {
+color: var(--gray);
+}
+.form-group select {
+-webkit-appearance: none;
+cursor: pointer;
+}
+.form-group select option {
+background: var(--black);
+color: var(--white);
+}
+.form-row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 1.5rem;
+}
+.btn-submit {
+margin-top: 1rem;
+width: 100%;
+padding: 1.2rem;
+background: var(--gold);
+color: var(--black);
+font-size: 0.75rem;
+font-weight: 600;
+letter-spacing: 0.25em;
+text-transform: uppercase;
+transition: all 0.4s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 1rem;
+}
+.btn-submit:hover { background: var(--gold-dark); }
+/* ========== INSTAGRAM SECTION ========== */
+.instagram {
+padding: 5rem 0;
+}
+.instagram-header {
+text-align: center;
+margin-bottom: 3rem;
+}
+.instagram-handle {
+font-family: var(--sans);
+font-size: 0.8rem;
+letter-spacing: 0.2em;
+color: var(--gold);
+margin-top: 0.75rem;
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+}
+.instagram-grid {
+display: grid;
+grid-template-columns: repeat(6, 1fr);
+gap: 3px;
+}
+.instagram-item {
+aspect-ratio: 1;
+overflow: hidden;
+position: relative;
+cursor: pointer;
+}
+.instagram-item img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+transition: all 0.5s ease;
+filter: grayscale(30%);
+}
+.instagram-item:hover img {
+scale: 1.1;
+filter: grayscale(0%);
+}
+.instagram-item::after {
+content: '';
+position: absolute;
+inset: 0;
+background: rgba(200, 169, 126, 0.2);
+opacity: 0;
+transition: opacity 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.instagram-item:hover::after { opacity: 1; }
+/* ========== FOOTER ========== */
+.footer {
+padding: 5rem 5rem 2rem;
+border-top: 1px solid rgba(200, 169, 126, 0.1);
+}
+.footer-top {
+display: grid;
+grid-template-columns: 2fr 1fr 1fr 1.5fr;
+gap: 3rem;
+margin-bottom: 4rem;
+}
+.footer-brand-name {
+font-family: var(--display);
+font-size: 2rem;
+letter-spacing: 0.1em;
+margin-bottom: 1.5rem;
+}
+.footer-brand-name .gold { color: var(--gold); }
+.footer-brand-desc {
+font-size: 0.85rem;
+line-height: 1.8;
+color: var(--gray);
+max-width: 300px;
+margin-bottom: 2rem;
+}
+.footer-socials {
+display: flex;
+gap: 1rem;
+}
+.footer-socials a {
+width: 40px;
+height: 40px;
+border: 1px solid rgba(200, 169, 126, 0.2);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.1rem;
+color: var(--gray-light);
+transition: all 0.3s ease;
+}
+.footer-socials a:hover {
+border-color: var(--gold);
+color: var(--gold);
+background: rgba(200, 169, 126, 0.05);
+}
+.footer-col-title {
+font-family: var(--display);
+font-size: 1rem;
+letter-spacing: 0.15em;
+margin-bottom: 1.5rem;
+color: var(--white);
+}
+.footer-col ul {
+list-style: none;
+display: flex;
+flex-direction: column;
+gap: 0.75rem;
+}
+.footer-col ul a {
+font-size: 0.85rem;
+color: var(--gray);
+transition: color 0.3s ease;
+}
+.footer-col ul a:hover { color: var(--gold); }
+.footer-contact-item {
+display: flex;
+align-items: flex-start;
+gap: 1rem;
+margin-bottom: 1.25rem;
+}
+.footer-contact-item .iconify {
+font-size: 1.1rem;
+color: var(--gold);
+margin-top: 0.2rem;
+flex-shrink: 0;
+}
+.footer-contact-item p {
+font-size: 0.85rem;
+line-height: 1.6;
+color: var(--gray);
+}
+.footer-bottom {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding-top: 2rem;
+border-top: 1px solid rgba(200, 169, 126, 0.1);
+}
+.footer-bottom p {
+font-size: 0.75rem;
+color: var(--gray);
+letter-spacing: 0.1em;
+}
+.footer-bottom-links {
+display: flex;
+gap: 2rem;
+}
+.footer-bottom-links a {
+font-size: 0.75rem;
+color: var(--gray);
+letter-spacing: 0.1em;
+transition: color 0.3s ease;
+}
+.footer-bottom-links a:hover { color: var(--gold); }
+/* ========== SCROLL REVEAL ========== */
+.reveal {
+opacity: 0;
+transform: translateY(40px);
+transition: all 0.8s var(--ease-out-expo);
+}
+.reveal.visible {
+opacity: 1;
+transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+/* ========== ANIMATIONS ========== */
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(40px); }
+to { opacity: 1; transform: translateY(0); }
+}
+/* ========== PARALLAX GOLD LINES ========== */
+.gold-line-decor {
+position: absolute;
+width: 1px;
+background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+opacity: 0.1;
+pointer-events: none;
+}
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+.services-grid {
+grid-template-columns: repeat(2, 1fr);
+}
+}
+@media (max-width: 1024px) {
+.hero {
+grid-template-columns: 1fr;
+min-height: auto;
+}
+.hero-content {
+padding: 8rem 3rem 4rem;
+min-height: 70vh;
+justify-content: flex-end;
+}
+.hero-image {
+height: 60vh;
+}
+.about {
+grid-template-columns: 1fr;
+padding: 6rem 3rem;
+gap: 3rem;
+}
+.about-images { height: 450px; }
+.services {
+padding: 6rem 3rem;
+}
+.services-header {
+flex-direction: column;
+align-items: flex-start;
+gap: 1.5rem;
+}
+.services-header-right { text-align: left; max-width: 100%; }
+.gallery { padding: 0 3rem 6rem; }
+.gallery-grid {
+grid-template-columns: 1fr 1fr;
+grid-template-rows: auto;
+}
+.gallery-item:nth-child(1) { grid-column: 1; grid-row: 1; }
+.gallery-item:nth-child(2) { grid-column: 2; grid-row: 1; }
+.gallery-item:nth-child(3) { grid-column: 1; grid-row: 2; }
+.gallery-item:nth-child(4) { grid-column: 2; grid-row: 2; }
+.gallery-item:nth-child(5) { grid-column: 1 / -1; grid-row: 3; }
+.gallery-item:nth-child(5) img { aspect-ratio: 21/9; }
+.team { padding: 6rem 3rem; }
+.team-grid { grid-template-columns: repeat(2, 1fr); }
+.team-header {
+flex-direction: column;
+align-items: flex-start;
+gap: 1.5rem;
+}
+.testimonials { padding: 6rem 3rem; }
+.booking { padding: 6rem 3rem; }
+.booking-inner { grid-template-columns: 1fr; }
+.booking-image { height: 400px; }
+.booking-image::after { transform: translate(15px, 15px); }
+.booking-form-wrapper { padding-left: 0; }
+.footer { padding: 4rem 3rem 2rem; }
+.footer-top { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+.nav { padding: 1.25rem 2rem; }
+.nav.scrolled { padding: 1rem 2rem; }
+.testimonial-bg-text { font-size: 25vw; }
+}
+@media (max-width: 768px) {
+.nav-links, .nav-cta { display: none; }
+.nav-hamburger { display: flex; }
+.hero-content {
+padding: 7rem 1.5rem 3rem;
+min-height: 60vh;
+}
+.hero-image { height: 50vh; }
+.hero-actions { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+.hero-desc { max-width: 100%; }
+.about { padding: 4rem 1.5rem; }
+.about-images {
+height: auto;
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+.about-img-main {
+width: 100%;
+height: 300px;
+}
+.about-img-secondary {
+position: relative;
+right: auto;
+bottom: auto;
+width: 100%;
+height: 220px;
+border: none;
+}
+.about-accent { display: none; }
+.about-stats { flex-direction: row; gap: 1.5rem; flex-wrap: wrap; }
+.about-content { padding-left: 0; }
+.services { padding: 4rem 1.5rem; }
+.services-grid { grid-template-columns: 1fr; }
+.service-card { padding: 2.5rem 1.5rem; }
+.service-arrow { opacity: 1; transform: translate(0, 0); }
+.gallery { padding: 0 1.5rem 4rem; }
+.gallery-header { margin-bottom: 3rem; }
+.gallery-grid { grid-template-columns: 1fr; gap: 1rem; }
+.gallery-item:nth-child(n) { grid-column: 1; grid-row: auto; }
+.gallery-item:nth-child(5) img { aspect-ratio: 4/3; }
+.gallery-overlay { opacity: 1; }
+.team { padding: 4rem 1.5rem; }
+.team-header { margin-bottom: 3rem; }
+.team-grid { grid-template-columns: 1fr; max-width: 500px; }
+.team-card-img img { filter: grayscale(0%); }
+.testimonials { padding: 4rem 1.5rem; }
+.testimonial-quote { font-size: 1.15rem; line-height: 1.7; }
+.testimonial-bg-text { font-size: 30vw; }
+.booking { padding: 4rem 1.5rem; }
+.booking-image { height: 280px; }
+.booking-image::after { transform: translate(10px, 10px); }
+.form-row { grid-template-columns: 1fr; }
+.instagram-grid { grid-template-columns: repeat(3, 1fr); }
+.footer { padding: 3rem 1.5rem 1.5rem; }
+.footer-top { grid-template-columns: 1fr; gap: 2rem; }
+.footer-brand-desc { max-width: 100%; }
+.footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+.footer-bottom-links { justify-content: center; }
+.marquee-item span { font-size: 1rem; }
+.mobile-nav a { font-size: 2rem; }
+.section-title { font-size: clamp(2rem, 6vw, 3rem); }
+.btn-primary { padding: 1rem 2rem; font-size: 0.65rem; }
+}
+@media (max-width: 480px) {
+.hero-title { font-size: clamp(2.2rem, 10vw, 2.8rem); }
+.hero-content { padding: 6rem 1.25rem 2.5rem; }
+.hero-tag-text { font-size: 0.6rem; letter-spacing: 0.25em; }
+.hero-desc { font-size: 0.9rem; }
+.section-title { font-size: 1.8rem; }
+.section-tag-text { font-size: 0.6rem; }
+.about { padding: 3rem 1.25rem; }
+.about-img-main { height: 250px; }
+.about-img-secondary { height: 180px; }
+.about-text { font-size: 0.9rem; }
+.about-stats { gap: 1rem; }
+.stat-number { font-size: 2.2rem; }
+.stat-label { font-size: 0.6rem; }
+.services { padding: 3rem 1.25rem; }
+.services-header { margin-bottom: 3rem; }
+.gallery { padding: 0 1.25rem 3rem; }
+.team { padding: 3rem 1.25rem; }
+.testimonials { padding: 3rem 1.25rem; }
+.testimonial-quote { font-size: 1rem; }
+.testimonial-stars .iconify { font-size: 0.9rem; }
+.booking { padding: 3rem 1.25rem; }
+.booking-image { height: 220px; }
+.booking-image::after { display: none; }
+.form-group label { font-size: 0.6rem; }
+.form-group input,
+.form-group select { font-size: 0.85rem; padding: 0.85rem 0; }
+.btn-submit { padding: 1rem; font-size: 0.65rem; }
+.instagram-grid { grid-template-columns: repeat(2, 1fr); }
+.instagram-header { margin-bottom: 2rem; }
+.footer { padding: 2.5rem 1.25rem 1.5rem; }
+.footer-brand-name { font-size: 1.6rem; }
+.footer-col-title { font-size: 0.9rem; }
+.footer-bottom p { font-size: 0.65rem; }
+.footer-bottom-links a { font-size: 0.65rem; }
+.footer-bottom-links { gap: 1rem; }
+.marquee-item span { font-size: 0.85rem; letter-spacing: 0.15em; }
+.marquee-item { gap: 1.5rem; padding: 0 1.5rem; }
+.nav-logo { font-size: 1.4rem; }
+.mobile-nav a { font-size: 1.6rem; }
+}
+@media (max-width: 360px) {
+.hero-title { font-size: 2rem; }
+.hero-content { padding: 5.5rem 1rem 2rem; }
+.hero-desc { font-size: 0.85rem; }
+.section-title { font-size: 1.6rem; }
+.about { padding: 2.5rem 1rem; }
+.about-img-main { height: 200px; }
+.about-img-secondary { height: 150px; }
+.about-stats { flex-direction: column; gap: 1rem; }
+.services { padding: 2.5rem 1rem; }
+.service-card { padding: 2rem 1.25rem; }
+.service-name { font-size: 1.2rem; }
+.service-desc { font-size: 0.8rem; }
+.service-price { font-size: 1.3rem; }
+.gallery { padding: 0 1rem 2.5rem; }
+.team { padding: 2.5rem 1rem; }
+.testimonials { padding: 2.5rem 1rem; }
+.testimonial-quote { font-size: 0.9rem; }
+.booking { padding: 2.5rem 1rem; }
+.booking-image { height: 180px; }
+.instagram-grid { grid-template-columns: repeat(2, 1fr); }
+.footer { padding: 2rem 1rem 1rem; }
+.nav { padding: 1rem; }
+.nav.scrolled { padding: 0.75rem 1rem; }
+.nav-logo { font-size: 1.2rem; }
+}
+/* ========== SMOOTH SCROLL BAR ========== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+</style>
+</style>
+<script src="https://cdn.tailwindcss.com/"></script><style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.bg-center{background-position:center}.object-cover{object-fit:cover}.italic{font-style:italic}</style><style id="aura-share-responsive-guards">
+@media (max-width: 639px) {
+  html,
+  body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  #root {
+    max-width: 100% !important;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  .aura-share-mobile-grid-stack {
+    grid-template-columns: minmax(0, 1fr) !important;
+    column-gap: min(1rem, 4vw) !important;
+  }
+
+  .aura-share-mobile-grid-stack > * {
+    grid-column: 1 / -1 !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+</style><style id="cms-loading-styles">
+@keyframes cms-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.cms-loading {
+  position: relative;
+  color: transparent !important;
+  /* Override any background-image (inline styles, Tailwind bg-[url(...)]) */
+  background-image: none !important;
+  background-color: transparent !important;
+  background: linear-gradient(90deg, 
+    rgba(128, 128, 128, 0.1) 25%, 
+    rgba(128, 128, 128, 0.2) 50%, 
+    rgba(128, 128, 128, 0.1) 75%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: cms-shimmer 1.5s infinite !important;
+  border-radius: 12px;
+  min-height: 1em;
+  min-width: 3em;
+  overflow: hidden;
+}
+.cms-loading * {
+  visibility: hidden !important;
+}
+.cms-loading img {
+  opacity: 0 !important;
+}
+</style>
+
+<!-- ============ DESIGN-SYSTEM DOCS CHROME (scoped, .ds- prefix only) ============ -->
+<style>
+.ds-topnav{position:fixed;top:0;left:0;width:100%;z-index:2000;background:rgba(10,10,10,0.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,169,126,0.15);}
+.ds-topnav-inner{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;max-width:1400px;margin:0 auto;padding:0.5rem 1.25rem;}
+.ds-topnav-brand{font-family:var(--display);letter-spacing:0.15em;font-size:0.9rem;color:var(--gold);margin-right:1rem;white-space:nowrap;}
+.ds-topnav a{font-family:var(--sans);font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gray-light);padding:0.35rem 0.6rem;border:1px solid transparent;transition:color .25s,border-color .25s;white-space:nowrap;}
+.ds-topnav a:hover{color:var(--gold);border-color:rgba(200,169,126,0.25);}
+.ds-wrap{max-width:1280px;margin:0 auto;padding:0 2rem;}
+body{padding-top:42px;}
+.ds-sec{padding:5rem 0 4rem;border-bottom:1px solid rgba(200,169,126,0.08);}
+.ds-h{font-family:var(--display);font-size:clamp(1.6rem,3vw,2.4rem);letter-spacing:0.1em;margin-bottom:.4rem;}
+.ds-sub{font-family:var(--sans);font-size:0.82rem;color:var(--gray-light);max-width:760px;line-height:1.7;margin-bottom:2.5rem;}
+.ds-h2{font-family:var(--display);font-size:1.15rem;letter-spacing:0.12em;color:var(--white);margin:2.4rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(200,169,126,0.12);}
+.ds-note{font-family:var(--sans);font-size:0.8rem;color:var(--gray);background:var(--black-light);border-left:2px solid var(--gold);padding:0.8rem 1rem;margin:1rem 0;line-height:1.6;}
+.ds-row{display:grid;grid-template-columns:180px 1fr 130px;gap:1.25rem;align-items:center;padding:1rem 0;border-bottom:1px solid rgba(200,169,126,0.06);}
+.ds-row .ds-k{font-family:var(--sans);font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);}
+.ds-row .ds-val{font-family:var(--sans);font-size:0.72rem;color:var(--gray);text-align:right;font-variant-numeric:tabular-nums;}
+.ds-chips{display:flex;flex-wrap:wrap;gap:1rem;}
+.ds-chip{width:150px;}
+.ds-chip .ds-sw{height:64px;border:1px solid rgba(200,169,126,0.15);margin-bottom:.5rem;}
+.ds-chip .ds-l{font-family:var(--sans);font-size:0.7rem;color:var(--white);letter-spacing:0.04em;}
+.ds-chip .ds-hx{font-family:var(--sans);font-size:0.62rem;color:var(--gray-light);margin-top:2px;}
+.ds-chip .ds-use{font-family:var(--sans);font-size:0.6rem;color:var(--gray);margin-top:4px;line-height:1.4;}
+.ds-code{font-family:ui-monospace,monospace;font-size:0.66rem;color:var(--white-dim);background:var(--black-medium);padding:0.7rem 0.9rem;border-left:2px solid var(--gold);overflow-x:auto;line-height:1.5;white-space:pre;display:block;}
+.ds-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+@media (max-width:768px){.ds-row{grid-template-columns:1fr;}.ds-row .ds-val{text-align:left;}.ds-grid2{grid-template-columns:1fr;}}
+.ds-static .nav{position:relative;top:auto;}
+.ds-static .mobile-nav{position:relative;inset:auto;opacity:1;visibility:visible;min-height:280px;background:var(--black-light);}
+
+/* ---- ds-* utility layer (docs chrome + demo scaffolding only) ---- */
+.ds-amp{color:var(--serif);font-style:italic;}
+.ds-dim{cursor:default;}
+.ds-center{text-align:center;}
+.ds-m0{margin:0;} .ds-mt0{margin-top:0;} .ds-mb0{margin-bottom:0;}
+.ds-mt-1{margin-top:.5rem;} .ds-mt-2{margin-top:.6rem;} .ds-mt-3{margin-top:1.5rem;}
+.ds-mt-08{margin-top:.8rem;} .ds-mt-25{margin-top:2.5rem;}
+.ds-mb-1{margin-bottom:.5rem;} .ds-mb-2{margin-bottom:.6rem;} .ds-mb-8{margin-bottom:.8rem;}
+.ds-my1{margin:1rem 0;}
+.ds-ml{margin-left:.6rem;}
+.ds-flex{display:flex;}
+.ds-flex-row{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;}
+.ds-flex-ai12{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;}
+.ds-flex-g1{display:flex;gap:1rem;}
+.ds-flex-g075{display:flex;gap:0.75rem;}
+.ds-flexwrap6{display:flex;gap:.6rem;flex-wrap:wrap;}
+.ds-flex-col{display:flex;flex-direction:column;gap:1rem;}
+.ds-stars{display:flex;gap:.4rem;font-size:1.1rem;color:var(--gold);}
+.ds-icon-row{display:flex;gap:1.4rem;flex-wrap:wrap;font-size:1.4rem;color:var(--gold);}
+.ds-icon-row-13{display:flex;gap:1.4rem;flex-wrap:wrap;font-size:1.3rem;color:var(--gold);align-items:center;}
+.ds-icons-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;font-size:2.2rem;color:var(--gold);}
+.ds-caption{font-family:var(--sans);font-size:.62rem;color:var(--gray);margin-top:.4rem;}
+.ds-cap7{font-family:var(--sans);font-size:.7rem;color:var(--gray);}
+.ds-cap7n{font-family:var(--sans);font-size:.7rem;color:var(--gray);}
+.ds-marquee-span{font-family:var(--display);font-size:1.3rem;letter-spacing:0.2em;color:var(--gray);text-transform:uppercase;}
+.ds-display-sm{font-family:var(--display);font-size:1.2rem;}
+.ds-section-md{font-size:clamp(1.8rem,3vw,2.6rem);}
+.ds-section-lg{font-size:clamp(2.2rem,4vw,3.2rem);}
+.ds-section-xs{font-size:clamp(1.6rem,2.5vw,2.2rem);}
+.ds-hero-md{font-size:clamp(3rem,6vw,5rem);}
+.ds-h2--sm{font-size:0.95rem;}
+.ds-quote-md{font-size:1.15rem;}
+.ds-quote-sm{font-size:1.05rem;}
+.ds-link-hover{color:var(--gold);}
+.ds-forceHover{color:var(--gold);}
+.ds-cta-active{background:var(--gold);color:var(--black);}
+.ds-input-focus{border-bottom-color:var(--gold);}
+.ds-arrow-force{opacity:1;transform:translate(0,0);}
+.ds-reveal-force{opacity:1;transform:none;animation:none;}
+.ds-card-sm{padding:2rem;width:220px;}
+.ds-card-sm2{padding:1.6rem;width:230px;}
+.ds-stats-flat{border-top:none;padding-top:0;}
+.ds-cms-bar{width:230px;height:22px;}
+.ds-mw300{max-width:300px;} .ds-mw320{max-width:320px;} .ds-mw640{max-width:640px;} .ds-mw420{max-width:420px;}
+.ds-w120{width:120px;}
+/* swatches (scoped under .ds-chip so they override .ds-sw border where needed) */
+.ds-chip .ds-sw--gold{background:#C8A97E;}
+.ds-chip .ds-sw--gold-light{background:#D4BC96;}
+.ds-chip .ds-sw--gold-dark{background:#A8885E;}
+.ds-chip .ds-sw--black{background:#0A0A0A;border-color:#333;}
+.ds-chip .ds-sw--black-light{background:#141414;border-color:#333;}
+.ds-chip .ds-sw--black-medium{background:#1A1A1A;border-color:#333;}
+.ds-chip .ds-sw--white{background:#FAFAF9;}
+.ds-chip .ds-sw--white-dim{background:#E8E6E1;}
+.ds-chip .ds-sw--gray{background:#6B6B6B;}
+.ds-chip .ds-sw--gray-light{background:#999999;}
+.ds-chip .ds-sw--dot{background:transparent;border-color:#C8A97E;}
+.ds-chip .ds-sw--dot-active{background:#C8A97E;}
+.ds-chip .ds-grad{display:block;height:40px;border:1px solid rgba(200,169,126,0.15);}
+.ds-chip .ds-grad--hero{background:linear-gradient(to right,var(--black) 0%,transparent 30%),linear-gradient(to top,var(--black) 0%,transparent 20%);}
+.ds-chip .ds-grad--card{background:linear-gradient(135deg,rgba(200,169,126,0.08) 0%,transparent 50%),var(--black-light);}
+.ds-chip .ds-grad--overlay{background:linear-gradient(to top,rgba(10,10,10,0.8) 0%,transparent 60%),var(--black-light);}
+/* panels / frames */
+.ds-frame{background:var(--black);border:1px solid rgba(200,169,126,0.1);}
+.ds-overflow-hidden{overflow:hidden;}
+.ds-panel{background:var(--black);border:1px solid rgba(200,169,126,0.1);padding:1.5rem 2rem;}
+.ds-panel--p14{padding:1.4rem 2rem;}
+.ds-panel--p14o{padding:1.4rem;}
+.ds-panel--wide{padding:2rem 3rem;}
+.ds-panel--p252{padding:2.5rem 2rem;}
+.ds-panel--p253{padding:2.5rem 3rem;}
+.ds-panel--p2{padding:2rem;}
+.ds-panel--p1{padding:1rem;}
+.ds-panel--p330{padding:3rem 3rem 0;}
+.ds-panel--navlinks{padding:0.5rem 2rem;}
+/* team-card-socials demo already covered by reference; no override */
+
+</style>
+</head>
+<body>
+
+<!-- ========== DOCS CHROME NAV ========== -->
+<nav class="ds-topnav">
+  <div class="ds-topnav-inner">
+    <span class="ds-topnav-brand">B<span class="ds-amp">&amp;</span>C · DS</span>
+    <a href="#sec0">Shell</a>
+    <a href="#sec1">Tipografia</a>
+    <a href="#sec2">Cores</a>
+    <a href="#sec3">Nav</a>
+    <a href="#sec4">Form</a>
+    <a href="#sec5">Dados</a>
+    <a href="#sec6">UI</a>
+    <a href="#sec7">Layout</a>
+    <a href="#sec8">Motion</a>
+    <a href="#sec9">Ícones</a>
+  </div>
+</nav>
+
+<!-- ===================== sec0 — APPLICATION SHELL ===================== -->
+<section class="ds-sec ds-wrap" id="sec0">
+  <div class="ds-h">APPLICATION SHELL</div>
+  <p class="ds-sub">O “shell” do app é a barra <code>.nav</code> fixa no topo + o overlay <code>.mobile-nav</code> + o topo do <code>.hero</code>. Clones fiéis; o estado <code>.scrolled</code> e <code>.mobile-nav.active</code> são exibidos estaticamente adicionando a classe de estado. (A <code>.nav</code> abaixo está com position:relative só para fins de documentação — seu visual é idêntico.)</p>
+
+  <div class="ds-h2">Nav — estado default</div>
+  <div class="ds-static ds-frame">
+    <nav class="nav" id="navClone">
+      <a href="#sec0" class="nav-logo">BLADE <span class="logo-ampersand">&amp;</span> CO.</a>
+      <ul class="nav-links">
+        <li><a href="#sec1">Our Story</a></li>
+        <li><a href="#sec2">Services</a></li>
+        <li><a href="#sec3">Gallery</a></li>
+        <li><a href="#sec4">Barbers</a></li>
+        <li><a href="#sec5">Reviews</a></li>
+      </ul>
+      <a href="#sec4" class="nav-cta">Book Now</a>
+      <div class="nav-hamburger"><span></span><span></span><span></span></div>
+    </nav>
+  </div>
+
+  <div class="ds-h2">Nav — estado <code>.scrolled</code></div>
+  <p class="ds-sub">Classe adicionada via JS quando <code>scrollY &gt; 80</code>: <code>padding 1rem 3rem</code>, <code>background: rgba(10,10,10,0.95)</code>, <code>backdrop-filter: blur(20px)</code>, <code>border-bottom: 1px solid rgba(200,169,126,0.1)</code>, transition <code>all 0.4s var(--ease-out-quart)</code>.</p>
+  <div class="ds-static ds-frame">
+    <nav class="nav scrolled">
+      <a href="#sec0" class="nav-logo">BLADE <span class="logo-ampersand">&amp;</span> CO.</a>
+      <ul class="nav-links">
+        <li><a href="#sec1">Our Story</a></li>
+        <li><a href="#sec2">Services</a></li>
+        <li><a href="#sec3">Gallery</a></li>
+      </ul>
+      <a href="#sec4" class="nav-cta">Book Now</a>
+      <div class="nav-hamburger active"><span></span><span></span><span></span></div>
+    </nav>
+  </div>
+  <p class="ds-note">No estado <code>.scrolled</code> o hamburger está mostrado com <code>.active</code> apenas como demonstração do ícone animado (em desktop <code>.nav-hamburger{display:none}</code>).</p>
+
+  <div class="ds-h2">Mobile-nav — estado <code>.active</code> (aberto)</div>
+  <p class="ds-sub">Overlay cobre a tela (<code>position:fixed;inset:0</code>), <code>background:var(--black)</code>, gap <code>2rem</code>; links usam font-family <code>--display</code>, <code>2.5rem</code>, <code>letter-spacing 0.15em</code>; transição <code>all 0.5s var(--ease-out-expo)</code>; hover gold.</p>
+  <div class="ds-static ds-frame ds-overflow-hidden">
+    <div class="mobile-nav active">
+      <a href="#sec0">Our Story</a>
+      <a href="#sec1">Services</a>
+      <a href="#sec2">Gallery</a>
+      <a href="#sec3">Barbers</a>
+      <a href="#sec4">Reviews</a>
+      <a href="#sec5">Book Now</a>
+    </div>
+  </div>
+
+  <div class="ds-h2">Topo do hero (shell visual)</div>
+  <div class="ds-frame ds-overflow-hidden">
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-tag">
+          <span class="hero-tag-line"></span>
+          <span class="hero-tag-text">Design System · Premium Grooming</span>
+        </div>
+        <h1 class="hero-title">
+          <span>WHERE CRAFT</span>
+          <span>MEETS</span>
+          <span class="title-stroke">&amp; TRADITION</span>
+        </h1>
+        <p class="hero-desc">System que documenta, fielmente, os tokens, componentes e motion do app de referência B&amp;C.</p>
+        <div class="hero-actions">
+          <a href="#sec6" class="btn-primary"><span>Browse Components</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+          <a href="#sec2" class="btn-outline"><span>Explore Tokens</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=1200&amp;q=85&amp;auto=format&amp;fit=crop" alt="Master barber at work">
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- ===================== sec1 — TIPOGRAFIA ===================== -->
+<section class="ds-sec ds-wrap" id="sec1">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Tipografia</span></div>
+  <h2 class="section-title ds-section-lg">TYPE <span class="italic">System</span></h2>
+  <p class="ds-sub">Três famílias: <code>--display</code> (Bebas Neue) p/ títulos, <code>--serif</code> (Playfair Display itálico) p/ acentos/aspas, <code>--sans</code> (Inter) p/ corpo. Mostra = preview ao vivo do elemento+classes exatos; à direita, size / line-height retirados do CSS de origem.</p>
+
+  <div class="ds-row"><div class="ds-k">hero-title (h1)</div><div><h1 class="hero-title ds-hero-md ds-m0">WHERE <span class="title-gold">craft</span> MEETS</h1></div><div class="ds-val">clamp(3.5–7rem) / 0.95</div></div>
+  <div class="ds-row"><div class="ds-k">section-title (h2)</div><div><h2 class="section-title ds-section-md ds-m0">A <span class="italic">Legacy</span> OF CRAFT</h2></div><div class="ds-val">clamp(2.5–4rem) / 1.05</div></div>
+  <div class="ds-row"><div class="ds-k">hero-tag-text</div><div><span class="hero-tag-text">EST. 2018 — PREMIUM GROOMING</span></div><div class="ds-val">0.7rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">section-tag-text</div><div><span class="section-tag-text">Our Story</span></div><div class="ds-val">0.65rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">service-name (h3)</div><div><h3 class="service-name ds-m0">SIGNATURE CUT</h3></div><div class="ds-val">1.4rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">footer-brand-name</div><div><div class="footer-brand-name ds-m0">BLADE <span class="gold">&amp;</span> CO.</div></div><div class="ds-val">2rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">footer-col-title</div><div><div class="footer-col-title ds-m0">QUICK LINKS</div></div><div class="ds-val">1rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">nav-logo</div><div><a class="nav-logo ds-dim">BLADE <span class="logo-ampersand">&amp;</span> CO.</a></div><div class="ds-val">1.8rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">nav-links a</div><div class="ds-static ds-panel ds-panel--navlinks"><ul class="nav-links"><li><a class="ds-dim">Services</a></li></ul></div><div class="ds-val">0.75rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">nav-cta</div><div><a class="nav-cta ds-dim">Book Now</a></div><div class="ds-val">0.7rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">stat-number</div><div><div class="stat-number">7+</div></div><div class="ds-val">2.8rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">stat-label</div><div><div class="stat-label">Years of Excellence</div></div><div class="ds-val">0.7rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">hero-desc (body)</div><div><p class="hero-desc ds-m0">Step into a world where every cut tells a story.</p></div><div class="ds-val">1rem / 1.8</div></div>
+  <div class="ds-row"><div class="ds-k">about-text</div><div><p class="about-text ds-m0">Founded in the heart of the city.</p></div><div class="ds-val">0.95rem / 1.9</div></div>
+  <div class="ds-row"><div class="ds-k">footer-brand-desc</div><div><p class="footer-brand-desc ds-m0">Where tradition meets modern craft.</p></div><div class="ds-val">0.85rem / 1.8</div></div>
+  <div class="ds-row"><div class="ds-k">footer-contact-item p</div><div><div class="footer-contact-item ds-m0"><p>+1 (555) 234-5678</p></div></div><div class="ds-val">0.85rem / 1.6</div></div>
+  <div class="ds-row"><div class="ds-k">footer-col ul a</div><div class="footer-col"><ul><li><a class="ds-dim">Our Story</a></li></ul></div><div class="ds-val">0.85rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">testimonial-quote</div><div><p class="testimonial-quote ds-m0 ds-quote-md">"An experience beyond the ordinary."</p></div><div class="ds-val">1.5rem / 1.8 (italic serif)</div></div>
+  <div class="ds-row"><div class="ds-k">testimonial-author-name</div><div><div class="testimonial-author-name">MICHAEL THORNTON</div></div><div class="ds-val">1.1rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">testimonial-author-title</div><div><div class="testimonial-author-title">Client since 2019</div></div><div class="ds-val">0.7rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">btn-submit</div><div><button type="button" class="btn-submit"><span>Confirm Booking</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></button></div><div class="ds-val">0.75rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">marquee-item span</div><div><span class="ds-marquee-span">PREMIUM GROOMING</span></div><div class="ds-val">1.3rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">gallery-overlay-text</div><div><span class="gallery-overlay-text">PRECISION FADE</span></div><div class="ds-val">1.1rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">service-price</div><div><span class="service-price">$45</span></div><div class="ds-val">1.6rem / —</div></div>
+  <div class="ds-row"><div class="ds-k">service-duration</div><div><span class="service-duration">45 Min</span></div><div class="ds-val">0.7rem / —</div></div>
+
+  <p class="ds-note"><b>Truncation:</b> nenhuma regra do CSS de origem usa <code>text-overflow:ellipsis</code>; apenas <code>white-space:nowrap</code> em <code>.marquee-item span</code> e <code>.testimonial-bg-text</code> (texto-decorativo, cutoff via overflow do container, sem reticências). Sem demo de ellipsis.<br><b>Monoespaçada:</b> o app não usa fonte monoespaçada para dado/código em seu próprio design (apenas o reset Tailwind define <code>code</code>). Categoria omitida.</p>
+</section>
+
+<!-- ===================== sec2 — CORES / SUPERFÍCIES ===================== -->
+<section class="ds-sec ds-wrap" id="sec2">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Tokens</span></div>
+  <h2 class="section-title ds-section-md">CORES, <span class="italic">Superfícies</span> &amp; ESTADOS</h2>
+
+  <div class="ds-h2">2.1 — Cores de Interface (<code>:root</code>)</div>
+  <div class="ds-chips">
+    <div class="ds-chip"><div class="ds-sw ds-sw--gold"></div><div class="ds-l">--gold</div><div class="ds-hx">#C8A97E</div><div class="ds-use">Acentos, CTAs, underline nav, links, ícones.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--gold-light"></div><div class="ds-l">--gold-light</div><div class="ds-hx">#D4BC96</div><div class="ds-use">Definido; não usado diretamente em regra.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--gold-dark"></div><div class="ds-l">--gold-dark</div><div class="ds-hx">#A8885E</div><div class="ds-use">Hover do btn-primary / btn-submit.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--black"></div><div class="ds-l">--black</div><div class="ds-hx">#0A0A0A</div><div class="ds-use">Fundo do body, service-card, mobile-nav.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--black-light"></div><div class="ds-l">--black-light</div><div class="ds-hx">#141414</div><div class="ds-use">Fundo da seção .team.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--black-medium"></div><div class="ds-l">--black-medium</div><div class="ds-hx">#1A1A1A</div><div class="ds-use">Definido; painéis internos (ds-code usa).</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--white"></div><div class="ds-l">--white</div><div class="ds-hx">#FAFAF9</div><div class="ds-use">Texto principal, títulos.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--white-dim"></div><div class="ds-l">--white-dim</div><div class="ds-hx">#E8E6E1</div><div class="ds-use">Texto secundário (btn-outline, mobile-nav links).</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--gray"></div><div class="ds-l">--gray</div><div class="ds-hx">#6B6B6B</div><div class="ds-use">Texto muted, placeholders, duraciones.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--gray-light"></div><div class="ds-l">--gray-light</div><div class="ds-hx">#999999</div><div class="ds-use">hero-desc, labels de form.</div></div>
+  </div>
+  <p class="ds-note"><b>Superfícies:</b> body bg <code>--black</code>; card/panel <code>.service-card{background:var(--black)}</code>; seção <code>.team{background:var(--black-light)}</code>; form/booking transparente sobre <code>--black</code>; footer transparente sobre <code>--black</code> com <code>border-top</code> dourado. <b>Tema único escuro</b> — sem tema claro.</p>
+
+  <div class="ds-h2">2.2 — Cores Semânticas de Estado</div>
+  <p class="ds-note">Este é um app de marketing (landing page), sem sistema de status de app (success/warning/error). As únicas cores “de estado” existentes são variações de <code>--gold</code>: hover em links/CTAs/ícones e o <code>.testimonial-dot.active</code> preenchido. Nenhum seletor <code>:disabled</code> existe no CSS próprio do app.</p>
+  <div class="ds-chips">
+    <div class="ds-chip"><div class="ds-sw ds-sw--gold"></div><div class="ds-l">hover / active</div><div class="ds-hx">--gold</div><div class="ds-use">nav-links a:hover, nav-cta:hover fill, ícones sociais, btn hover.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--gold-dark"></div><div class="ds-l">btn hover bg</div><div class="ds-hx">--gold-dark</div><div class="ds-use">.btn-primary:hover::before, .btn-submit:hover.</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--dot"></div><div class="ds-l">dot default</div><div class="ds-hx">border --gold</div><div class="ds-use">.testimonial-dot (vazio, borda gold).</div></div>
+    <div class="ds-chip"><div class="ds-sw ds-sw--gold"></div><div class="ds-l">dot active</div><div class="ds-hx">fill --gold + scale(1.2)</div><div class="ds-use">.testimonial-dot.active.</div></div>
+  </div>
+
+  <div class="ds-h2">2.3 — Superfícies e Efeitos</div>
+  <p class="ds-sub">Bordas / dividers (todas em dourado translúcido), overlays, blur e gradientes exatos do CSS de origem.</p>
+
+  <div class="ds-h2 ds-h2--sm">Bordas &amp; dividers</div>
+  <pre class="ds-code">.marquee-section     { border-top/bottom: 1px solid rgba(200,169,126,0.1) }
+.nav.scrolled        { border-bottom:    1px solid rgba(200,169,126,0.1) }
+.footer              { border-top:       1px solid rgba(200,169,126,0.1) }
+.footer-bottom       { border-top:       1px solid rgba(200,169,126,0.1) }
+.about-stats         { border-top:       1px solid rgba(200,169,126,0.15) }
+.service-price-row   { border-top:       1px solid rgba(200,169,126,0.1) }
+.form-group input,.form-group select { border-bottom: 1px solid rgba(200,169,126,0.2) }
+.footer-socials a    { border:           1px solid rgba(200,169,126,0.2) }
+.booking-image::after{ border:           1px solid var(--gold) }
+.services-grid       { background: rgba(200,169,126,0.1); gap:1px } /* divide cards */</pre>
+
+  <div class="ds-h2 ds-h2--sm">Sombras</div>
+  <p class="ds-note">Nenhuma regra <code>box-shadow</code> existe no CSS próprio do app (apenas resets do preflight Tailwind). Sem sistema de sombras/elevação.</p>
+
+  <div class="ds-h2 ds-h2--sm">Glass / blur</div>
+  <pre class="ds-code">.nav.scrolled { background: rgba(10,10,10,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px) }</pre>
+
+  <div class="ds-h2 ds-h2--sm">Overlays</div>
+  <pre class="ds-code">.hero-image::after { background: linear-gradient(to right,var(--black) 0%,transparent 30%),
+                                       linear-gradient(to top,var(--black) 0%,transparent 20%) }
+.gallery-overlay    { background: linear-gradient(to top, rgba(10,10,10,0.8) 0%, transparent 60%); opacity:0 → .gallery-image:hover opacity:1 }
+.instagram-item::after{ background: rgba(200,169,126,0.2); opacity:0 → :hover opacity:1 }</pre>
+
+  <div class="ds-h2 ds-h2--sm">Gradientes</div>
+  <pre class="ds-code">.hero-image::after        : linear-gradient(to right,var(--black) 0%,transparent 30%), linear-gradient(to top,var(--black) 0%,transparent 20%)
+.service-card::before     : linear-gradient(135deg, rgba(200,169,126,0.08) 0%, transparent 50%)   (hover-reveal)
+.gallery-overlay          : linear-gradient(to top, rgba(10,10,10,0.8) 0%, transparent 60%)
+.gold-line-decor          : linear-gradient(to bottom, transparent, var(--gold), transparent); opacity:0.1
+.cms-loading             : linear-gradient(90deg, rgba(128,128,128,0.1) 25%, rgba(128,128,128,0.2) 50%, rgba(128,128,128,0.1) 75%)
+.btn-primary::before     : var(--gold-dark) (slide fill on hover, no gradient)</pre>
+  <div class="ds-flexwrap6 ds-mt-08">
+    <span class="ds-chip ds-w120"><span class="ds-sw ds-grad ds-grad--hero"></span><span class="ds-l">hero-image::after</span></span>
+    <span class="ds-chip ds-w120"><span class="ds-sw ds-grad ds-grad--card"></span><span class="ds-l">service-card::before</span></span>
+    <span class="ds-chip ds-w120"><span class="ds-sw ds-grad ds-grad--overlay"></span><span class="ds-l">gallery-overlay</span></span>
+  </div>
+</section>
+
+<!-- ===================== sec3 — NAV / ESTRUTURA ===================== -->
+<section class="ds-sec ds-wrap" id="sec3">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Navigation</span></div>
+  <h2 class="section-title ds-section-md">NAVEGAÇÃO &amp; <span class="italic">Estrutura</span></h2>
+
+  <div class="ds-h2">3.1 — Menu (top nav + mobile overlay)</div>
+  <p class="ds-sub">Não há sidebar. A top bar é a única navegação. Estados documentados lado a lado.</p>
+
+  <div class="ds-grid2">
+    <div>
+      <div class="ds-k ds-mb-2">nav-links a — default</div>
+      <div class="ds-static ds-panel ds-panel--p14">
+        <ul class="nav-links"><li><a class="ds-dim">Services</a></li></ul>
+      </div>
+      <p class="ds-note ds-mt-2"><code>::after</code> underline <code>width:0 → :hover width:100%</code>, transition <code>width 0.3s var(--ease-out-expo)</code>; <code>color</code> transition <code>0.3s ease</code> gray-light→gold.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">nav-links a — hover</div>
+      <div class="ds-static ds-panel ds-panel--p14">
+        <ul class="nav-links"><li><a class="ds-forceHover ds-dim ds-link-hover">Services</a></li></ul>
+      </div>
+      <p class="ds-note ds-mt-2">Demo estática do estado hover (cor gold + underline via <code>::after</code>). Sem classe de link ativo/existente no source — o nav não marca a página atual.</p>
+    </div>
+  </div>
+
+  <div class="ds-grid2 ds-mt-3">
+    <div>
+      <div class="ds-k ds-mb-2">nav-cta — default</div>
+      <div class="ds-panel"><a class="nav-cta ds-dim">Book Now</a></div>
+      <p class="ds-note ds-mt-2">Outline gold, hover fill inverso (bg gold, texto black), transition <code>all 0.4s ease</code>.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">nav-cta — hover</div>
+      <div class="ds-panel"><a class="nav-cta ds-dim ds-cta-active">Book Now</a></div>
+      <p class="ds-note ds-mt-2">Estado hover reproduzido estaticamente.</p>
+    </div>
+  </div>
+
+  <div class="ds-grid2 ds-mt-3">
+    <div>
+      <div class="ds-k ds-mb-2">hamburger — default</div>
+      <div class="ds-panel"><div class="nav-hamburger ds-flex"><span></span><span></span><span></span></div></div>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">hamburger — active</div>
+      <div class="ds-panel"><div class="nav-hamburger active ds-flex"><span></span><span></span><span></span></div></div>
+      <p class="ds-note ds-mt-2"><code>.active span:nth-child(1)</code> rotate 45°, <code>(2)</code> opacity 0, <code>(3)</code> rotate -45°; transition <code>all 0.3s ease</code>. Só visível em <code>max-width:768px</code>.</p>
+    </div>
+  </div>
+
+  <div class="ds-h2">3.2 — Header/Topbar: elementos em <code>.nav</code></div>
+  <div class="ds-row"><div class="ds-k">.nav-logo</div><div><a class="nav-logo ds-dim">BLADE <span class="logo-ampersand">&amp;</span> CO.</a></div><div class="ds-val">display 1.8rem / gap .75rem</div></div>
+  <div class="ds-row"><div class="ds-k">.nav-links</div><div>lista <code>ul &gt; li &gt; a</code>, gap 2.5rem, uppercase 0.75rem</div><div class="ds-val">hidden &lt;768px</div></div>
+  <div class="ds-row"><div class="ds-k">.nav-cta</div><div>CTA outline gold</div><div class="ds-val">hidden &lt;768px</div></div>
+  <div class="ds-row"><div class="ds-k">.nav-hamburger</div><div>3 linhas brancas, 28×1px</div><div class="ds-val">flex &lt;768px</div></div>
+
+  <p class="ds-note"><b>Omitido (ausente na referência):</b> breadcrumbs, tabs, pagination. As dots dos testimonials são carrossel (documentado em sec8), não paginação.</p>
+</section>
+
+<!-- ===================== sec4 — FORM ===================== -->
+<section class="ds-sec ds-wrap" id="sec4">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Forms</span></div>
+  <h2 class="section-title ds-section-md">COMPONENTES DE <span class="italic">Formulário</span></h2>
+  <p class="ds-sub">O único formulário real é o <code>.booking-form</code>. Inputs/select date/time; sem textarea, checkbox, radio, toggle, file ou DatePicker custom. Estados existentes: default, placeholder, focus (borda gold). Sem estado de error/disabled no CSS próprio.</p>
+
+  <div class="ds-h2">4.1 — Inputs de texto</div>
+  <div class="ds-grid2">
+    <div>
+      <div class="ds-k ds-mb-1">default + placeholder</div>
+      <div class="form-group ds-mw300"><label>First Name</label><input type="text" placeholder="John"></div>
+      <p class="ds-note ds-mt-1">Border-bottom <code>1px solid rgba(200,169,126,0.2)</code>, bg transparent, padding <code>1rem 0</code>, placeholder <code>color:var(--gray)</code>.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-1">focus (borda gold)</div>
+      <div class="form-group ds-mw300"><label>Email</label><input class="ds-input-focus" type="email" placeholder="john@email.com"></div>
+      <p class="ds-note ds-mt-1"><code>:focus</code> → <code>border-bottom-color: var(--gold)</code>, transition <code>border-color 0.3s ease</code>.</p>
+    </div>
+  </div>
+  <p class="ds-note">Label: <code>display:block; font-size:0.65rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gray-light); margin-bottom:0.5rem</code>. Nenhum helper-text / error-text existe no source.</p>
+
+  <div class="ds-h2">4.2 — Select (dropdown nativo)</div>
+  <div class="ds-grid2">
+    <div>
+      <div class="form-group ds-mw320"><label>Select Service</label>
+        <select><option value="">Choose a service...</option><option>Signature Cut — $45</option><option>Hot Towel Shave — $55</option></select>
+      </div>
+      <p class="ds-note ds-mt-1"><code>-webkit-appearance:none</code>, mesma estilização do input (border-bottom), <code>cursor:pointer</code>. Opções usam o popup nativo (<code>select option { background:var(--black); color:var(--white) }</code>). Sem dropdown custom.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-1">date / time nativos</div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date"></div>
+        <div class="form-group"><label>Time</label><input type="time"></div>
+      </div>
+      <p class="ds-note ds-mt-1">Inputs nativos <code>type=date</code> / <code>type=time</code>, mesma regra do input. Sem componente de calendário custom.</p>
+    </div>
+  </div>
+
+  <div class="ds-h2">4.7 — Composição: <code>.booking-form</code> completa</div>
+  <div class="ds-static ds-panel ds-panel--wide">
+    <form class="booking-form" onsubmit="event.preventDefault();">
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" placeholder="John"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" placeholder="Doe"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Email</label><input type="email" placeholder="john@email.com"></div>
+        <div class="form-group"><label>Phone</label><input type="tel" placeholder="+1 (555) 000-0000"></div>
+      </div>
+      <div class="form-group">
+        <label>Select Service</label>
+        <select><option value="">Choose a service...</option><option value="signature">Signature Cut — $45</option><option value="shave">Hot Towel Shave — $55</option><option value="beard">Beard Sculpting — $35</option><option value="royal">The Royal — $95</option></select>
+      </div>
+      <div class="form-group">
+        <label>Preferred Barber</label>
+        <select><option value="">No preference</option><option value="james">James Rivera</option><option value="marcus">Marcus Chen</option><option value="david">David Okafor</option></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Date</label><input type="date"></div>
+        <div class="form-group"><label>Time</label><input type="time"></div>
+      </div>
+      <button type="submit" class="btn-submit"><span>Confirm Booking</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></button>
+    </form>
+  </div>
+  <p class="ds-note"><b>Omitido (ausente):</b> textarea (4.5), checkbox/radio (4.3), toggle (4.4), file-upload / DatePicker custom (4.6), estados error/disabled/read-only.</p>
+</section>
+
+<!-- ===================== sec5 — DADOS (stats) ===================== -->
+<section class="ds-sec ds-wrap" id="sec5">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Data Display</span></div>
+  <h2 class="section-title ds-section-md">EXIBIÇÃO DE <span class="italic">Dados</span></h2>
+  <p class="ds-note">A referência é uma landing page — <b>sem tabelas, dashboards, KPIs nem gráficos</b>. O único padrão de exibição numérica são os <code>.about-stats</code> (número + label).</p>
+
+  <div class="ds-h2">5.1 — Stats / Destaques</div>
+  <div class="ds-panel ds-panel--p252">
+    <div class="about-stats ds-stats-flat">
+      <div><div class="stat-number">7+</div><div class="stat-label">Years of Excellence</div></div>
+      <div><div class="stat-number">15K+</div><div class="stat-label">Happy Clients</div></div>
+      <div><div class="stat-number">6</div><div class="stat-label">Master Barbers</div></div>
+    </div>
+  </div>
+  <pre class="ds-code">.about-stats { display:flex; gap:3rem; padding-top:2.5rem; border-top:1px solid rgba(200,169,126,0.15) }
+.stat-number{ font-family:var(--display); font-size:2.8rem; color:var(--gold); letter-spacing:0.03em }
+.stat-label { font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gray); margin-top:0.25rem }
+/* JS opcional: IntersectionObserver anima o número de 0→alvo (counter). */</pre>
+</section>
+
+<!-- ===================== sec6 — UI COMPONENTS ===================== -->
+<section class="ds-sec ds-wrap" id="sec6">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">UI</span></div>
+  <h2 class="section-title ds-section-md">COMPONENTES DE <span class="italic">UI</span></h2>
+
+  <div class="ds-h2">6.1 — Botões / actions</div>
+  <div class="ds-grid2">
+    <div>
+      <div class="ds-k ds-mb-2">.btn-primary (default / hover)</div>
+      <div class="ds-flex-row">
+        <a class="btn-primary"><span>Reserve Your Chair</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+        <span class="ds-cap7n">→ hover: <code>::before</code> fill slide <code>var(--gold-dark)</code></span>
+      </div>
+      <p class="ds-note ds-mt-1">gold bg, black text, padding <code>1.1rem 2.5rem</code>, <code>0.7rem</code> uppercase; <code>::before</code>translateX(-101%)→0; transition <code>all 0.4s var(--ease-out-expo)</code>.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">.btn-outline (default / hover)</div>
+      <div class="ds-flex-row">
+        <a class="btn-outline"><span>Explore Services</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+      </div>
+      <p class="ds-note ds-mt-1">text link, <code>0.75rem</code> uppercase, color <code>--white-dim</code>→<code>--gold</code>; ícone translada <code>translateX(4px)</code> no hover; transitions <code>0.3s ease</code>.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">.nav-cta (default / hover)</div>
+      <div class="ds-flex-row">
+        <a class="nav-cta ds-dim">Book Now</a>
+        <a class="nav-cta ds-dim ds-cta-active">Book Now</a>
+      </div>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">.btn-submit (default / hover)</div>
+      <div class="ds-flex-row">
+        <button type="button" class="btn-submit"><span>Confirm Booking</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></button>
+      </div>
+      <p class="ds-note ds-mt-1">full-width gold, <code>padding:1.2rem</code>; <code>:hover{background:var(--gold-dark)}</code>; transition <code>0.4s ease</code>.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">.service-arrow (ghost action)</div>
+      <div class="ds-static ds-panel ds-panel--p14o">
+        <div class="service-card ds-card-sm">
+          <span class="iconify service-arrow ds-arrow-force" data-icon="solar:arrow-right-up-linear"></span>
+          <h3 class="service-name ds-m0">SIGNATURE CUT</h3>
+        </div>
+      </div>
+      <p class="ds-note ds-mt-1">Sempre presente no card; default opacity0 + translate(-10,10), aparece no <code>:hover</code> do card; transition <code>0.4s var(--ease-out-expo)</code>.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">icon buttons (footer / team socials)</div>
+      <div class="ds-flex-row">
+        <div class="footer-socials ds-flex-g1">
+          <a class="ds-dim"><span class="iconify" data-icon="solar:camera-bold"></span></a>
+          <a class="ds-dim"><span class="iconify" data-icon="solar:chat-round-dots-bold"></span></a>
+        </div>
+        <div class="team-card-socials ds-flex-g075">
+          <a class="ds-dim"><span class="iconify" data-icon="solar:chat-round-dots-bold"></span></a>
+        </div>
+      </div>
+      
+      <p class="ds-note ds-mt-1">.footer-socials a: caixa 40×40 com borda, hover gold + bg rgba(200,169,126,0.05), <code>0.3s ease</code>. .team-card-socials a: só ícone, hover gray→gold.</p>
+    </div>
+  </div>
+
+  <div class="ds-h2">6.2 — Badges / Tags</div>
+  <div class="ds-grid2">
+    <div>
+      <div class="ds-k ds-mb-2">.hero-tag (pill com linha)</div>
+      <div class="hero-tag ds-reveal-force"><span class="hero-tag-line"></span><span class="hero-tag-text">EST. 2018 — PREMIUM GROOMING</span></div>
+      <p class="ds-note ds-mt-1">inline-flex, gap 1rem; linha 40×1px gold; texto 0.7rem uppercase gold. Sem estado hover próprio.</p>
+    </div>
+    <div>
+      <div class="ds-k ds-mb-2">.section-tag (lined tag)</div>
+      <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Our Story</span></div>
+      <p class="ds-note ds-mt-1">linha 30×1px gold + texto 0.65rem uppercase gold. Sem hover.</p>
+    </div>
+  </div>
+
+  <div class="ds-h2">6.8 — Loading / Skeleton</div>
+  <p class="ds-sub">Não há spinner/progress/skeleton do próprio app. Existe apenas o utilitário global <code>.cms-loading</code> (shimmer) definido em <code>#cms-loading-styles</code>.</p>
+  <div class="ds-panel ds-panel--p2">
+    <div class="cms-loading ds-cms-bar">Carregando conteúdo…</div>
+  </div>
+  <pre class="ds-code">@keyframes cms-shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.cms-loading { color:transparent!important; background:linear-gradient(90deg,rgba(128,128,128,0.1) 25%,rgba(128,128,128,0.2) 50%,rgba(128,128,128,0.1) 75%)!important; background-size:200% 100%!important; animation:cms-shimmer 1.5s infinite!important }</pre>
+
+  <p class="ds-note"><b>Omitido (ausente na referência):</b> 6.3 modais/dialogs, 6.4 toast/alerts, 6.5 tooltips/popovers, 6.6 dropdown-menu/context-menu, 6.7 avatar/user-badge. A foto <code>.team-card-img</code> é moldura de foto (documentada em sec 3 do markup original), não um sistema de avatar com iniciais/status.</p>
+</section>
+
+<!-- ===================== sec7 — LAYOUT ===================== -->
+<section class="ds-sec ds-wrap" id="sec7">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Layout</span></div>
+  <h2 class="section-title ds-section-md">LAYOUT &amp; <span class="italic">Espaçamento</span></h2>
+
+  <div class="ds-h2">Shell &amp; seções</div>
+  <pre class="ds-code">.nav          { padding: 1.5rem 3rem }           .nav.scrolled { padding: 1rem 3rem }
+.hero-content { padding: 8rem 5rem 5rem }
+.about        { padding: 10rem 5rem }
+.services     { padding: 8rem 5rem 10rem }
+.gallery      { padding: 0 5rem 10rem }
+.team         { padding: 8rem 5rem 10rem; background:var(--black-light) }
+.testimonials { padding: 10rem 5rem }
+.booking      { padding: 10rem 5rem }
+.instagram    { padding: 5rem 0 }
+.footer       { padding: 5rem 5rem 2rem }
+/* sem container único; cada seção define seu próprio padding lateral (5rem desktop). */</pre>
+
+  <div class="ds-h2">Grids</div>
+  <pre class="ds-code">.services-grid  { display:grid; grid-template-columns: repeat(4,1fr); gap:1px; background:rgba(200,169,126,0.1) }
+.gallery-grid   { display:grid; grid-template-columns: repeat(12,1fr); gap:1.5rem }  /* items posicionados por nth-child */
+.team-grid      { display:grid; grid-template-columns: repeat(3,1fr); gap:2rem }
+.instagram-grid { display:grid; grid-template-columns: repeat(6,1fr); gap:3px }
+.footer-top     { display:grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap:3rem; margin-bottom:4rem }
+.about          { display:grid; grid-template-columns: 1fr 1fr; gap:5rem; align-items:center }
+.hero           { display:grid; grid-template-columns: 1fr 1fr; min-height:100vh }
+.booking-inner  { display:grid; grid-template-columns: 1fr 1fr; gap:4rem; align-items:center }
+.booking-form   { display:flex; flex-direction:column; gap:1.5rem; margin-top:2.5rem }
+.form-row       { display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem }</pre>
+
+  <div class="ds-h2">Excerpt real #1 — services header + services-grid</div>
+  <div class="ds-static ds-panel ds-panel--p330">
+    <div class="services-header">
+      <div>
+        <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">What We Offer</span></div>
+        <h2 class="section-title ds-mb0 ds-section-xs">OUR <span class="italic">Premium</span> SERVICES</h2>
+      </div>
+      <div class="services-header-right"><p>Each service is crafted with precision and care.</p></div>
+    </div>
+    <div class="services-grid ds-mt-25">
+      <div class="service-card"><span class="iconify service-icon" data-icon="solar:scissors-bold"></span><h3 class="service-name">SIGNATURE CUT</h3><p class="service-desc">Tailored cut, hot towel, styling.</p><div class="service-price-row"><span class="service-price">$45</span><span class="service-duration">45 Min</span></div></div>
+      <div class="service-card"><span class="iconify service-icon" data-icon="solar:fire-bold"></span><h3 class="service-name">HOT TOWEL SHAVE</h3><p class="service-desc">Straight-razor ritual.</p><div class="service-price-row"><span class="service-price">$55</span><span class="service-duration">50 Min</span></div></div>
+    </div>
+  </div>
+  <p class="ds-note ds-mt-2">Header <code>display:flex;justify-content:space-between;align-items:flex-end</code>; grid <code>repeat(4,1fr) gap:1px</code>.</p>
+
+  <div class="ds-h2">Excerpt real #2 — booking-form layout</div>
+  <div class="ds-static ds-panel ds-panel--wide">
+    <form class="booking-form ds-mt0" onsubmit="event.preventDefault();">
+      <div class="form-row"><div class="form-group"><label>First Name</label><input type="text" placeholder="John"></div><div class="form-group"><label>Last Name</label><input type="text" placeholder="Doe"></div></div>
+      <div class="form-group"><label>Select Service</label><select><option>Choose a service...</option></select></div>
+      <button type="submit" class="btn-submit"><span>Confirm Booking</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></button>
+    </form>
+  </div>
+  <p class="ds-note ds-mt-2"><code>.booking-form</code> flex column gap 1.5rem; <code>.form-row</code> grid 1fr 1fr gap 1.5rem.</p>
+
+  <div class="ds-h2">Excerpt real #3 — footer-top grid</div>
+  <div class="ds-static ds-panel ds-panel--p253">
+    <div class="footer-top ds-mb0">
+      <div><div class="footer-brand-name ds-mb-8">BLADE <span class="gold">&amp;</span> CO.</div><p class="footer-brand-desc ds-m0">Premium grooming since 2018.</p></div>
+      <div class="footer-col"><div class="footer-col-title">QUICK LINKS</div><ul><li><a class="ds-dim">Our Story</a></li><li><a class="ds-dim">Services</a></li></ul></div>
+      <div class="footer-col"><div class="footer-col-title">SERVICES</div><ul><li><a class="ds-dim">Signature Cut</a></li></ul></div>
+      <div class="footer-col"><div class="footer-col-title">VISIT US</div><div class="footer-contact-item"><span class="iconify" data-icon="solar:map-point-bold"></span><p>742 Barber Lane, NY</p></div></div>
+    </div>
+  </div>
+  <p class="ds-note ds-mt-2">grid <code>2fr 1fr 1fr 1.5fr</code> gap 3rem (col1=brand; col2/3=links; col4=contact).</p>
+
+  <div class="ds-h2">Responsividade — breakpoints</div>
+  <pre class="ds-code">@media (max-width:1200px)  .services-grid → repeat(2,1fr)
+@media (max-width:1024px)  hero/about/booking-inner → 1 col; gallery → 1fr 1fr; team-grid → 2 cols; footer-top → 1fr 1fr; paddings 6rem 3rem
+@media (max-width:768px)   nav-links + nav-cta hidden; hamburger flex; about-images stacked; services-grid/team-grid → 1 col; gallery-overlay sempre visível; form-row → 1 col; instagram → 3 cols
+@media (max-width:480px)   tipografias menores; paddings 1.25rem; instagram → 2 cols; booking-image::after display:none
+@media (max-width:360px)   paddings 1rem; hero-title 2rem; hero min-padding
+/* + responsive-guards externo: @media (max-width:639px) html/body max-width:100% overflow-x:hidden */</pre>
+</section>
+
+<!-- ===================== sec8 — MOTION ===================== -->
+<section class="ds-sec ds-wrap" id="sec8">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Motion</span></div>
+  <h2 class="section-title ds-section-md">GALERIA DE <span class="italic">Motion</span></h2>
+  <p class="ds-sub">Cada animação/transition ao vivo, com timing/easing exatos. As demoes de <code>.reveal</code> recebem <code>.visible</code> via IntersectionObserver (reaproveitado do app); o marquee roda sozinho.</p>
+
+  <div class="ds-h2">scroll-reveal (.reveal → .visible, stagger)</div>
+  <div class="ds-panel ds-panel--p2 ds-flex-col">
+    <div class="reveal"><div class="ds-display-sm">Bloco .reveal</div></div>
+    <div class="reveal reveal-delay-1"><div class="ds-display-sm">.reveal.reveal-delay-1</div></div>
+    <div class="reveal reveal-delay-2"><div class="ds-display-sm">.reveal.reveal-delay-2</div></div>
+    <div class="reveal reveal-delay-3"><div class="ds-display-sm">.reveal.reveal-delay-3</div></div>
+    <div class="reveal reveal-delay-4"><div class="ds-display-sm">.reveal.reveal-delay-4</div></div>
+  </div>
+  <pre class="ds-code">.reveal          { opacity:0; transform:translateY(40px); transition:all 0.8s var(--ease-out-expo) }
+.reveal.visible  { opacity:1; transform:translateY(0) }
+.reveal-delay-1..4 { transition-delay:0.1s / 0.2s / 0.3s / 0.4s }
+/* IntersectionObserver threshold:0.1, rootMargin '0px 0px -50px 0px' */</pre>
+
+  <div class="ds-h2">marquee (.marquee-track)</div>
+  <div class="marquee-section ds-my1">
+    <div class="marquee-track">
+      <div class="marquee-item"><span>Premium Grooming</span><span class="dot"></span><span>Hot Towel Shaves</span><span class="dot"></span><span>Beard Sculpting</span><span class="dot"></span><span>Classic Cuts</span><span class="dot"></span></div>
+      <div class="marquee-item"><span>Premium Grooming</span><span class="dot"></span><span>Hot Towel Shaves</span><span class="dot"></span><span>Beard Sculpting</span><span class="dot"></span><span>Classic Cuts</span><span class="dot"></span></div>
+    </div>
+  </div>
+  <pre class="ds-code">@keyframes marqueeScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.marquee-track { display:flex; width:max-content; animation:marqueeScroll 30s linear infinite }
+.marquee-item span { font-family:var(--display); font-size:1.3rem; letter-spacing:0.2em; color:var(--gray); text-transform:uppercase; white-space:nowrap }
+.marquee-item .dot { width:4px;height:4px;background:var(--gold);border-radius:50% }</pre>
+
+  <div class="ds-h2">@keyframes heroImgReveal / fadeUp / fadeIn</div>
+  <pre class="ds-code">@keyframes heroImgReveal { from{opacity:0;scale:1.2} to{opacity:1;scale:1.05} }   /* hero img, 1.8s ease-out-expo .5s */
+@keyframes fadeUp  { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }  /* hero-tag/title/desc/actions 0.8–1s ease-out-expo */
+@keyframes fadeIn  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }   /* .testimonial-item.active 0.6s ease */</pre>
+
+  <div class="ds-h2">nav scrolled + underline ::after</div>
+  <div class="ds-panel ds-panel--p14">
+    <ul class="nav-links"><li><a class="ds-dim">Services (passe o mouse)</a></li></ul>
+  </div>
+  <pre class="ds-code">.nav            { transition: all 0.4s var(--ease-out-quart) }
+.nav-links a::after { width:0; height:1px; background:var(--gold); transition: width 0.3s var(--ease-out-expo) }  → :hover width:100%
+.nav-links a    { transition: color 0.3s ease }</pre>
+
+  <div class="ds-h2">button hover / service-card hover / gallery hover</div>
+  <div class="ds-flex-ai12">
+    <a class="btn-primary"><span>Hover me</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+    <a class="nav-cta ds-dim">Hover fill</a>
+    <div class="ds-static ds-panel ds-panel--p1">
+      <div class="service-card ds-card-sm2"><span class="iconify service-icon" data-icon="solar:crown-bold"></span><h3 class="service-name">THE ROYAL</h3></div>
+    </div>
+  </div>
+  <pre class="ds-code">.btn-primary    { transition: all 0.4s var(--ease-out-expo) }  ::before { transition: transform 0.4s var(--ease-out-expo) }
+.nav-cta        { transition: all 0.4s ease }
+.service-card   { transition: all 0.5s var(--ease-out-expo) }  :hover transform:translateY(-5px); .service-icon scale(1.1) 0.4s
+.gallery-item img { transition: all 0.6s var(--ease-out-expo) } :hover scale:1.05, grayscale 0
+.team-card-img img { transition: all 0.6s var(--ease-out-expo) } :hover scale:1.05
+.instagram-item img { transition: all 0.5s ease } :hover scale:1.1</pre>
+
+  <div class="ds-h2">testimonial carousel + dots</div>
+  <div class="ds-static ds-panel ds-panel--p252">
+    <div class="testimonial-slider ds-mw640">
+      <div class="testimonial-item"><p class="testimonial-quote ds-m0 ds-quote-sm">"Blade &amp; Co. ranks among the very best. Marcus shaped my beard into a work of art."</p><div class="testimonial-author-name">ALEXANDER HUNT</div></div>
+      <div class="testimonial-item active"><p class="testimonial-quote ds-m0 ds-quote-sm">"The Royal package is worth every penny."</p><div class="testimonial-author-name">ROBERT CASTELLANO</div><div class="testimonial-author-title">Client since 2020</div></div>
+    </div>
+    <div class="testimonial-nav ds-mt-3">
+      <button type="button" class="testimonial-dot"></button>
+      <button type="button" class="testimonial-dot"></button>
+      <button type="button" class="testimonial-dot active"></button>
+    </div>
+  </div>
+  <pre class="ds-code">.testimonial-item     { display:none; animation: fadeIn 0.6s ease }  .testimonial-item.active { display:block }
+.testimonial-dot      { 8×8; border:1px var(--gold); background:transparent; transition: all 0.3s ease }
+.testimonial-dot.active{ background:var(--gold); transform:scale(1.2) }
+/* JS: dots clicáveis + autoplay 5s */</pre>
+</section>
+
+<!-- ===================== sec9 — ÍCONES ===================== -->
+<section class="ds-sec ds-wrap" id="sec9">
+  <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Icons</span></div>
+  <h2 class="section-title ds-section-md">ÍCONES — <span class="italic">Iconify</span></h2>
+  <p class="ds-sub">Biblioteca: <b>Iconify</b> (<code>https://code.iconify.design/3/3.1.0/iconify.min.js</code>), icon-set <b>Solar</b>. Render via <code>&lt;span class="iconify" data-icon="solar:…"&gt;</code>. Tamanho herda o <code>font-size</code> do pai (regra original abaixo). Abaixo, todos os ícones realmente usados, agrupados por contexto.</p>
+  <pre class="ds-code">.service-icon          { font-size:2.2rem; color:var(--gold) }
+.testimonial-stars .iconify { font-size:1.1rem; color:var(--gold) }
+.btn-outline .iconify  { font-size:1.2rem }
+.footer-socials a     { font-size:1.1rem }   .footer-contact-item .iconify { font-size:1.1rem;color:var(--gold) }
+.team-card-socials a  { font-size:1.1rem }
+.service-arrow        { font-size:1.2rem;color:var(--gold) }
+.instagram-handle .iconify { (inline, herda) }</pre>
+
+  <div class="ds-h2">Navegação / ações</div>
+  <div class="ds-icon-row">
+    <span class="iconify" data-icon="solar:arrow-right-linear"></span><span class="ds-cap7">solar:arrow-right-linear · btn-primary / btn-outline / btn-submit</span>
+  </div>
+  <div class="ds-icon-row ds-mt-2">
+    <span class="iconify" data-icon="solar:arrow-right-up-linear"></span><span class="ds-cap7">solar:arrow-right-up-linear · .service-arrow (todos os cards)</span>
+  </div>
+
+  <div class="ds-h2">Services (ícone de cada card)</div>
+  <div class="ds-icons-grid">
+    <div class="ds-center"><span class="iconify" data-icon="solar:scissors-bold"></span><div class="ds-caption">scissors-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:fire-bold"></span><div class="ds-caption">fire-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:crown-bold"></span><div class="ds-caption">crown-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:star-bold"></span><div class="ds-caption">star-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:pallete-2-bold"></span><div class="ds-caption">pallete-2-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:waterdrop-bold"></span><div class="ds-caption">waterdrop-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:magic-stick-3-bold"></span><div class="ds-caption">magic-stick-3-bold</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:face-scan-circle-bold"></span><div class="ds-caption">face-scan-circle-bold</div></div>
+  </div>
+
+  <div class="ds-h2">Status / avaliação</div>
+  <div class="ds-stars">
+    <span class="iconify" data-icon="solar:star-bold"></span><span class="iconify" data-icon="solar:star-bold"></span><span class="iconify" data-icon="solar:star-bold"></span><span class="iconify" data-icon="solar:star-bold"></span><span class="iconify" data-icon="solar:star-bold"></span>
+    <span class="ds-cap7 ds-ml">solar:star-bold · .testimonial-stars (5× por review)</span>
+  </div>
+
+  <div class="ds-h2">Social / contato</div>
+  <div class="ds-icon-row-13">
+    <div class="ds-center"><span class="iconify" data-icon="solar:camera-bold"></span><div class="ds-caption">camera-bold · instagram + footer</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:chat-round-dots-bold"></span><div class="ds-caption">chat-round-dots-bold · team + footer</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:share-bold"></span><div class="ds-caption">share-bold · footer</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:play-bold"></span><div class="ds-caption">play-bold · footer</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:map-point-bold"></span><div class="ds-caption">map-point-bold · contato</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:phone-bold"></span><div class="ds-caption">phone-bold · contato</div></div>
+    <div class="ds-center"><span class="iconify" data-icon="solar:clock-circle-bold"></span><div class="ds-caption">clock-circle-bold · contato</div></div>
+  </div>
+
+  <p class="ds-note">Total: <b>16 ícones</b> do set <i>Solar</i> via Iconify. Nenhum ícone de outro set é usado. Tamanhos controlados pelo <code>font-size</code> do pai (variante 2.2rem em service-icon, 1.1rem em stars/socials/contact, 1.2rem em service-arrow/btn-outline).</p>
+</section>
+
+<script>
+// Minimal behavior reused from the reference page (no auth/supabase logic).
+// scroll-reveal
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.1, rootMargin:'0px 0px -50px 0px'});
+revealEls.forEach(el=>io.observe(el));
+// docs-nav smooth scroll
+document.querySelectorAll('.ds-topnav a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',function(e){e.preventDefault();const t=document.querySelector(this.getAttribute('href'));if(t)t.scrollIntoView({behavior:'smooth',block:'start'});});
+});
+</script>
+</body>
+</html>
