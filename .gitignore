@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual env (IMPORTANTE)
+.venv/
+venv/
+
+# Django
+db.sqlite3
+*.log
+local_settings.py
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Docker volumes (se criar locais depois)
+postgres_data/
+redis_data/
+rabbitmq_data/
+
+# Static / media (produção será via volume)
+staticfiles/
+media/
+
+# Migrations cache
+**/migrations/__pycache__/

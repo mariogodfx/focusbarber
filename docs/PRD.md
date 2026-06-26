@@ -141,7 +141,7 @@ smartphones
 tablets
 desktops
 A interface deve respeitar rigorosamente o design system do projeto definido em:
-/focusbarber/docs/design_system.md
+@focusbarber/design_system/design-system.html
 UX deve priorizar:
 fluidez de agendamento
 baixa fricção no fluxo de clientes
@@ -439,15 +439,15 @@ Cada item possui:
 
 🧪 SPRINT 1 — Base do Projeto
 Implementação
-Setup Django + PostgreSQL ( )
-Apps core/base ( )
-Docker Compose dev ( )
-Settings + .env ( )
-Auth base Django ( )
+Setup Django + PostgreSQL (X)
+Apps core/base (X)
+Docker Compose dev (X)
+Settings + .env (X)
+Auth base Django (X)
 Validação CLI
-Django sobe corretamente ( )
-DB conecta ( )
-Admin acessível ( )
+Django sobe corretamente (X)
+DB conecta (X)
+Admin acessível (X)
 Validação MANUAL (VOCÊ)
 Consigo logar no admin
 Consigo criar usuário
@@ -455,19 +455,19 @@ Containers sobem sem erro
 
 🧪 SPRINT 2 — Multi-Tenant Core
 Implementação
-Tenant model ( )
-Middleware tenant ( )
-QuerySet filtrado ( )
-Proteção cross-tenant ( )
+Tenant model (X)
+Middleware tenant (X)
+QuerySet filtrado (X)
+Proteção cross-tenant (X)
 CLI
-Isolamento validado ( )
+Isolamento validado (X)
 MANUAL
 Criar 2 barbearias
 Confirmar isolamento total de dados
 
 🧪 SPRINT 3 — Usuários e Permissões
 CLI
-login email funcionando ( )
+login email funcionando (X)
 MANUAL
 testar login por roles
 validar permissões diferentes

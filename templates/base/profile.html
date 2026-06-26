@@ -1,0 +1,56 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusBarber · Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #C8A97E; --gold-dark: #A8885E;
+      --black: #0A0A0A; --black-light: #141414; --black-medium: #1A1A1A;
+      --white: #FAFAF9; --gray: #6B6B6B; --gray-light: #999999;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--black); color: var(--white);
+      min-height: 100vh; display:flex; align-items:center; justify-content:center;
+      padding: 2rem;
+    }
+    .card {
+      width: 100%; max-width: 460px;
+      background: var(--black-light);
+      border: 1px solid rgba(200,169,126,0.15);
+      padding: 2.5rem 2rem;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 1.5rem; letter-spacing:.05em; }
+    h1 .gold { color: var(--gold); }
+    .row { display:flex; justify-content:space-between; padding:.7rem 0; border-bottom:1px solid rgba(200,169,126,0.1); font-size:.9rem; }
+    .row .k { color: var(--gray-light); }
+    .row .v { color: var(--white); font-weight:500; }
+    .role-badge { color: var(--gold); border:1px solid var(--gold); padding:.2rem .6rem; font-size:.7rem; letter-spacing:.15em; text-transform:uppercase; }
+    .actions { margin-top:1.5rem; display:flex; gap:.8rem; }
+    a.btn { display:inline-block; text-decoration:none; padding:.7rem 1.2rem; font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; }
+    a.admin { background: var(--gold); color: var(--black); }
+    a.logout { border:1px solid var(--gray); color: var(--gray-light); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Bem-vindo, <span class="gold">{{ user.email|cut:"@"|cut:"." }}</span></h1>
+    <div class="row"><span class="k">E-mail</span><span class="v">{{ user.email }}</span></div>
+    <div class="row"><span class="k">Perfil</span><span class="v"><span class="role-badge">{{ user.get_role_display }}</span></span></div>
+    <div class="row"><span class="k">Barbearia</span><span class="v">{{ user.tenant|default:"global" }}</span></div>
+    <div class="row"><span class="k">Staff</span><span class="v">{{ user.is_staff|yesno:"sim,não" }}</span></div>
+    <div class="actions">
+      {% if user.is_staff %}<a class="btn admin" href="/admin/">Painel admin</a>{% endif %}
+      <form method="post" action="{% url 'base:logout' %}">{% csrf_token %}
+        <button type="submit" class="btn logout" style="background:none;cursor:pointer;">Sair</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

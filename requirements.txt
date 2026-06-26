@@ -1,0 +1,16 @@
+# FocusBarber — dependências Python.
+# Sprint 1 (Base): Django + PostgreSQL + leitura de .env.
+
+# Django 6 (Python 3.12)
+Django==6.0.6
+asgiref==3.11.1
+sqlparse==0.5.5
+
+# PostgreSQL driver (Django 6 requer psycopg >= 3.2)
+psycopg[binary]>=3.2,<4
+
+# Variáveis de ambiente via .env (PRD §13.6)
+environs[django]>=11,<15
+
+# Servidor WSGI para produção (usado a partir de sprints de deploy)
+gunicorn>=23,<25
