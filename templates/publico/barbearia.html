@@ -1,0 +1,274 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ barbearia.name }} · FocusBarber</title>
+  <meta name="description" content="{{ barbearia.tagline|default:barbearia.description|default:'Barbearia no FocusBarber' }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --gold:#C8A97E;--gold-light:#D4BC96;--gold-dark:#A8885E;
+      --black:#0A0A0A;--black-light:#141414;--black-medium:#1A1A1A;
+      --white:#FAFAF9;--white-dim:#E8E6E1;--gray:#6B6B6B;--gray-light:#999999;
+      --serif:'Playfair Display',Georgia,serif;
+      --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      --display:'Bebas Neue',Impact,sans-serif;
+      --ease-out-expo:cubic-bezier(0.16,1,0.3,1);--ease-out-quart:cubic-bezier(0.25,1,0.5,1);
+    }
+    html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--gold) var(--black)}
+    body{font-family:var(--sans);background:var(--black);color:var(--white);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    img{max-width:100%;height:auto;display:block}a{text-decoration:none;color:inherit}
+    /* NAV */
+    .nav{position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.5rem 3rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s var(--ease-out-quart)}
+    .nav.scrolled{padding:1rem 3rem;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,169,126,.1)}
+    .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:.15em;color:var(--white);display:flex;align-items:center;gap:.75rem}
+    .nav-logo .amp{color:var(--gold);font-family:var(--serif);font-style:italic;font-size:1.4rem}
+    .nav-cta{font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;padding:.75rem 1.75rem;border:1px solid var(--gold);color:var(--gold);transition:all .4s ease}
+    .nav-cta:hover{background:var(--gold);color:var(--black)}
+    /* HERO */
+    .hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden}
+    .hero-content{display:flex;flex-direction:column;justify-content:center;padding:8rem 5rem 5rem;position:relative;z-index:2}
+    .hero-tag{display:inline-flex;align-items:center;gap:1rem;margin-bottom:2.5rem}
+    .hero-tag-line{width:40px;height:1px;background:var(--gold)}
+    .hero-tag-text{font-size:.7rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold)}
+    .hero-title{font-family:var(--display);font-size:clamp(3.5rem,7vw,7rem);line-height:.95;letter-spacing:.04em;color:var(--white);margin-bottom:2rem}
+    .hero-title .stroke{-webkit-text-stroke:1.5px var(--white);color:transparent}
+    .hero-title .gold{color:var(--gold);font-family:var(--serif);font-style:italic;font-size:.65em;font-weight:400}
+    .hero-desc{font-size:1rem;line-height:1.8;color:var(--gray-light);max-width:420px;margin-bottom:3rem}
+    .hero-actions{display:flex;align-items:center;gap:2rem}
+    .btn-primary{display:inline-flex;align-items:center;gap:1rem;background:var(--gold);color:var(--black);padding:1.1rem 2.5rem;font-size:.7rem;font-weight:600;letter-spacing:.25em;text-transform:uppercase;transition:all .4s var(--ease-out-expo);position:relative;overflow:hidden}
+    .btn-primary:hover{background:var(--gold-dark)}
+    .btn-outline{display:inline-flex;align-items:center;gap:.75rem;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;color:var(--white-dim);transition:color .3s ease;border:1px solid rgba(200,169,126,.25);padding:1.1rem 2rem}
+    .btn-outline:hover{color:var(--gold);border-color:var(--gold)}
+    .hero-image{position:relative;overflow:hidden;background:var(--black-medium)}
+    .hero-image img{width:100%;height:100%;object-fit:cover}
+    .hero-image.fallback{display:flex;align-items:center;justify-content:center}
+    .hero-image.fallback .glyph{font-family:var(--display);font-size:8rem;color:var(--gold);opacity:.4}
+    .hero-image::after{content:'';position:absolute;inset:0;background:linear-gradient(to right,var(--black) 0%,transparent 30%),linear-gradient(to top,var(--black) 0%,transparent 20%);pointer-events:none}
+    /* SECTION TAG / TITLE */
+    .section-tag{display:inline-flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+    .section-tag-line{width:30px;height:1px;background:var(--gold)}
+    .section-tag-text{font-size:.65rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold)}
+    .section-title{font-family:var(--display);font-size:clamp(2.5rem,4vw,4rem);letter-spacing:.05em;line-height:1.05;margin-bottom:2rem}
+    .section-title .italic{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--gold)}
+    /* SERVICES */
+    .services{padding:8rem 5rem 10rem;position:relative}
+    .services-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:5rem}
+    .services-header .section-title{margin-bottom:0}
+    .services-header-right{text-align:right;max-width:350px}
+    .services-header-right p{font-size:.9rem;line-height:1.8;color:var(--gray-light)}
+    .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(200,169,126,.1)}
+    .service-card{background:var(--black);padding:3rem 2rem;position:relative;overflow:hidden;transition:all .5s var(--ease-out-expo);cursor:default}
+    .service-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,126,.08) 0%,transparent 50%);opacity:0;transition:opacity .5s ease}
+    .service-card:hover::before{opacity:1}
+    .service-card:hover{transform:translateY(-5px)}
+    .service-icon{font-size:2.2rem;color:var(--gold);margin-bottom:2rem;transition:transform .4s var(--ease-out-expo)}
+    .service-card:hover .service-icon{transform:scale(1.1)}
+    .service-name{font-family:var(--display);font-size:1.4rem;letter-spacing:.1em;margin-bottom:.75rem}
+    .service-desc{font-size:.85rem;line-height:1.7;color:var(--gray);margin-bottom:2rem}
+    .service-price-row{display:flex;justify-content:space-between;align-items:center;padding-top:1.5rem;border-top:1px solid rgba(200,169,126,.1)}
+    .service-duration{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gray)}
+    .service-arrow{position:absolute;top:2rem;right:2rem;font-size:1.2rem;color:var(--gold);opacity:0;transform:translate(-10px,10px);transition:all .4s var(--ease-out-expo)}
+    .service-card:hover .service-arrow{opacity:1;transform:translate(0,0)}
+    .empty-state{padding:6rem 3rem;text-align:center;color:var(--gray-light)}
+    .empty-state h3{font-family:var(--display);font-size:1.6rem;letter-spacing:.1em;margin-bottom:1rem;color:var(--white-dim)}
+    /* FOOTER */
+    .footer{padding:5rem 5rem 2rem;border-top:1px solid rgba(200,169,126,.1)}
+    .footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;gap:3rem;margin-bottom:4rem}
+    .footer-brand-name{font-family:var(--display);font-size:2rem;letter-spacing:.1em;margin-bottom:1.5rem}
+    .footer-brand-name .gold{color:var(--gold)}
+    .footer-brand-desc{font-size:.85rem;line-height:1.8;color:var(--gray);max-width:300px;margin-bottom:2rem}
+    .footer-socials{display:flex;gap:1rem}
+    .footer-socials a{width:40px;height:40px;border:1px solid rgba(200,169,126,.2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--gray-light);transition:all .3s ease}
+    .footer-socials a:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,169,126,.05)}
+    .footer-col-title{font-family:var(--display);font-size:1rem;letter-spacing:.15em;margin-bottom:1.5rem;color:var(--white)}
+    .footer-col ul{list-style:none;display:flex;flex-direction:column;gap:.75rem}
+    .footer-col ul a{font-size:.85rem;color:var(--gray);transition:color .3s ease}
+    .footer-col ul a:hover{color:var(--gold)}
+    .footer-contact-item{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.25rem}
+    .footer-contact-item .iconify{font-size:1.1rem;color:var(--gold);margin-top:.2rem;flex-shrink:0}
+    .footer-contact-item p{font-size:.85rem;line-height:1.6;color:var(--gray)}
+    .footer-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:2rem;border-top:1px solid rgba(200,169,126,.1)}
+    .footer-bottom p{font-size:.75rem;color:var(--gray);letter-spacing:.1em}
+    .footer-bottom-links{display:flex;gap:2rem}
+    .footer-bottom-links a{font-size:.75rem;color:var(--gray);letter-spacing:.1em;transition:color .3s ease}
+    .footer-bottom-links a:hover{color:var(--gold)}
+    /* FLAGS DE STATUS */
+    .status-flag{display:inline-flex;align-items:center;gap:.4rem;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-left:1rem}
+    .status-flag.off{color:var(--gray)}
+    /* RESPONSIVE */
+    @media(max-width:1200px){.services-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:1024px){
+      .hero{grid-template-columns:1fr;min-height:auto}
+      .hero-content{padding:8rem 3rem 4rem;min-height:70vh;justify-content:flex-end}
+      .hero-image{height:60vh}
+      .services{padding:6rem 3rem}
+      .services-header{flex-direction:column;align-items:flex-start;gap:1.5rem}
+      .services-header-right{text-align:left;max-width:100%}
+      .footer{padding:4rem 3rem 2rem}
+      .footer-top{grid-template-columns:1fr 1fr;gap:2.5rem}
+      .nav{padding:1.25rem 2rem}
+    }
+    @media(max-width:768px){
+      .nav-cta{display:none}
+      .hero-content{padding:7rem 1.5rem 3rem;min-height:60vh}
+      .hero-image{height:50vh}
+      .hero-actions{flex-direction:column;align-items:flex-start;gap:1.5rem}
+      .hero-desc{max-width:100%}
+      .services{padding:4rem 1.5rem}
+      .services-grid{grid-template-columns:1fr}
+      .service-card{padding:2.5rem 1.5rem}
+      .service-arrow{opacity:1;transform:translate(0,0)}
+      .footer{padding:3rem 1.5rem 1.5rem}
+      .footer-top{grid-template-columns:1fr;gap:2rem}
+      .footer-bottom{flex-direction:column;gap:1rem;text-align:center}
+      .footer-bottom-links{justify-content:center}
+      .section-title{font-size:clamp(2rem,6vw,3rem)}
+    }
+    @media(max-width:480px){
+      .footer{padding:2.5rem 1.25rem 1.5rem}
+      .footer-brand-name{font-size:1.6rem}
+      .services{padding:3rem 1.25rem}
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <a href="#top" class="nav-logo">{{ barbearia.name|upper }}</a>
+    <a href="#servicos" class="nav-cta">Agendar</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <div class="hero-content">
+      <div class="hero-tag">
+        <span class="hero-tag-line"></span>
+        <span class="hero-tag-text">{{ barbearia.tagline|default:"Premium Grooming" }}</span>
+      </div>
+      <h1 class="hero-title">
+        <span>{{ barbearia.name|upper }}</span>
+        <span><span class="gold">{{ barbearia.tagline|default:"Tradição &amp; Estilo" }}</span></span>
+      </h1>
+      {% if barbearia.description %}
+      <p class="hero-desc">{{ barbearia.description|truncatewords:40 }}</p>
+      {% endif %}
+      <div class="hero-actions">
+        <a href="#servicos" class="btn-primary"><span>Ver Serviços</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+        {% if barbearia.whatsapp %}<a href="https://wa.me/{{ barbearia.whatsapp|cut:'+' }}" class="btn-outline"><span>WhatsApp</span><span class="iconify" data-icon="solar:chat-round-dots-linear"></span></a>{% endif %}
+      </div>
+    </div>
+    <div class="hero-image{% if not barbearia.cover %} fallback{% endif %}">
+      {% if barbearia.cover %}
+        <img src="{{ barbearia.cover.url }}" alt="{{ barbearia.name }}">
+      {% else %}
+        <span class="glyph">{{ barbearia.name|first|upper }}</span>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services" id="servicos">
+    <div class="services-header">
+      <div>
+        <div class="section-tag"><span class="section-tag-line"></span><span class="section-tag-text">Nossos Serviços</span></div>
+        <h2 class="section-title">{% if servicos %}SERVIÇOS <span class="italic">Premium</span>{% else %}EM <span class="italic">Breve</span>{% endif %}</h2>
+      </div>
+      <div class="services-header-right"><p>Cada serviço é executado com precisão e cuidado.</p></div>
+    </div>
+
+    {% if servicos %}
+    <div class="services-grid">
+      {% for s in servicos %}
+        <div class="service-card">
+          <span class="iconify service-icon" data-icon="solar:scissors-bold"></span>
+          <span class="iconify service-arrow" data-icon="solar:arrow-right-up-linear"></span>
+          <h3 class="service-name">{{ s.name|upper }}</h3>
+          <p class="service-desc">Serviço oferecido por {{ barbearia.name }}.</p>
+          <div class="service-price-row">
+            <span class="service-duration">{{ s.duration_minutes }} Min</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h3>Serviços em breve</h3>
+      <p>Estamos preparando nosso cardápio de serviços. Volte em breve.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand-name">{{ barbearia.name|upper }}</div>
+        <p class="footer-brand-desc">{{ barbearia.description|default:barbearia.tagline|default:"Onde tradição encontra o ofício moderno." }}</p>
+        {% if barbearia.instagram or barbearia.whatsapp %}
+        <div class="footer-socials">
+          {% if barbearia.instagram %}<a href="https://instagram.com/{{ barbearia.instagram|cut:'@' }}" target="_blank" rel="noopener"><span class="iconify" data-icon="solar:camera-bold"></span></a>{% endif %}
+          {% if barbearia.whatsapp %}<a href="https://wa.me/{{ barbearia.whatsapp|cut:'+' }}" target="_blank" rel="noopener"><span class="iconify" data-icon="solar:chat-round-dots-bold"></span></a>{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Navegação</div>
+        <ul>
+          <li><a href="#top">Início</a></li>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="/login/">Acesso</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Contato</div>
+        <div class="footer-contact-item">
+          <span class="iconify" data-icon="solar:phone-bold"></span>
+          <p>{{ barbearia.phone|default:"—" }}</p>
+        </div>
+        {% if barbearia.whatsapp %}
+        <div class="footer-contact-item">
+          <span class="iconify" data-icon="solar:chat-round-dots-bold"></span>
+          <p>{{ barbearia.whatsapp }}</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Visite</div>
+        <div class="footer-contact-item">
+          <span class="iconify" data-icon="solar:map-point-bold"></span>
+          <p>{{ barbearia.address|default:"—" }}</p>
+        </div>
+        {% if horarios %}
+        <div class="footer-contact-item">
+          <span class="iconify" data-icon="solar:clock-circle-bold"></span>
+          <p>
+            {% for h in horarios %}{% if h.is_open %}{{ h.get_weekday_display }}: {{ h.open_time|time:"H:i" }}–{{ h.close_time|time:"H:i" }}{% if h.break_start %} (pausa {{ h.break_start|time:"H:i" }}–{{ h.break_end|time:"H:i" }}){% endif %}<br>{% else %}{{ h.get_weekday_display }}: fechado<br>{% endif %}{% endfor %}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>{{ barbearia.name }} · FocusBarber</p>
+      <div class="footer-bottom-links">
+        <a href="#top">Privacidade</a>
+        <a href="#top">Termos</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Nav scrolled state (design-system.html spec).
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
+  </script>
+</body>
+</html>

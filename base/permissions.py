@@ -24,26 +24,58 @@ from django.db.models import Q
 ROLE_PERMISSIONS = {
     "superadmin": [],  # usa is_superuser (acesso global) — sem lista explícita.
     "owner": [
-        # Gestão da própria barbearia (CRUD).
+        # Gestão da própria barbearia (CRUD) — sem excluir serviços (só inativar).
         "core.view_tenant", "core.change_tenant",
         # Usuários da barbearia.
         "base.view_user", "base.add_user", "base.change_user",
-        # Serviços da barbearia.
-        "core.view_service", "core.add_service", "core.change_service", "core.delete_service",
+        # Serviços da barbearia: criar/alterar (incl. flag is_active); NÃO excluir.
+        "core.view_service", "core.add_service", "core.change_service",
+        # Sprint 5 — Profissionais e disponibilidade (gerência completa).
+        "core.view_professional", "core.add_professional",
+        "core.change_professional", "core.delete_professional",
+        "core.view_businesshours", "core.add_businesshours",
+        "core.change_businesshours",
+        "core.view_professionalavailability",
+        "core.add_professionalavailability",
+        "core.change_professionalavailability",
+        "core.add_professionalservice", "core.delete_professionalservice",
+        # Sprint 5+ — Memberships e convites de profissional (multi-unidade).
+        "core.view_tenantmembership", "core.add_tenantmembership",
+        "core.change_tenantmembership",
+        "core.view_professionalinvitation", "core.add_professionalinvitation",
+        "core.change_professionalinvitation",
     ],
     "manager": [
         # Operação: vê a barbearia (somente leitura).
         "core.view_tenant",
         # Usuários: vê, mas não gerencia permissões críticas.
         "base.view_user", "base.add_user", "base.change_user",
-        # Serviços (CRUD operacional).
+        # Serviços (CRUD operacional, incl. flag is_active); NÃO excluir.
         "core.view_service", "core.add_service", "core.change_service",
+        # Sprint 5 — Profissionais e disponibilidade (operacional).
+        "core.view_professional", "core.add_professional",
+        "core.change_professional",
+        "core.view_businesshours", "core.change_businesshours",
+        "core.view_professionalavailability",
+        "core.add_professionalavailability",
+        "core.change_professionalavailability",
+        "core.add_professionalservice", "core.delete_professionalservice",
+        # Sprint 5+ — Memberships (leitura) e convites (gestão operacional).
+        "core.view_tenantmembership",
+        "core.view_professionalinvitation", "core.add_professionalinvitation",
+        "core.change_professionalinvitation",
     ],
     "professional": [
-        # Execução: vê serviços; sem criar/excluir.
-        "core.view_service", "core.change_service",
+        # Execução: vê serviços; sem alterar/inativar (is_active é gestão).
+        "core.view_service",
+        # Sprint 5 — vê o próprio perfil de profissional e a própria agenda.
+        "core.view_professional",
+        "core.view_professionalavailability",
         # Vê usuários (clientes/profissionais) — leitura.
         "base.view_user",
+        # Sprint 5+ — vê próprios vínculos e convites direcionados.
+        "core.view_tenantmembership",
+        "core.view_professionalinvitation", "core.change_professionalinvitation",
     ],
     "client": [
         # Acesso público: vê próprios dados (tratados por views específicas).

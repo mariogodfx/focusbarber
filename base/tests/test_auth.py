@@ -80,6 +80,14 @@ class RolePermissionsTests(TestCase):
         self.assertEqual(codenames, expected,
                          f"Owner deve ter exatamente: {expected}, tem: {codenames}")
 
+    def test_owner_nao_pode_excluir_servico(self):
+        # Sprint 3 ajuste: dono inativa serviço, não exclui.
+        u = self._make(User.Role.OWNER)
+        codenames = set(u.user_permissions.values_list("codename", flat=True))
+        self.assertNotIn("delete_service", codenames)
+        # ...mas pode alterar (incl. flag is_active).
+        self.assertIn("change_service", codenames)
+
     def test_manager_nao_tem_delete_service(self):
         u = self._make(User.Role.MANAGER)
         codenames = set(u.user_permissions.values_list("codename", flat=True))
@@ -92,7 +100,8 @@ class RolePermissionsTests(TestCase):
         u = self._make(User.Role.PROFESSIONAL)
         codenames = set(u.user_permissions.values_list("codename", flat=True))
         self.assertIn("view_service", codenames)
-        self.assertIn("change_service", codenames)
+        # Profissional NÃO altera serviço (is_active é gestão) — Sprint 3 ajuste.
+        self.assertNotIn("change_service", codenames)
         self.assertNotIn("add_service", codenames)
         self.assertNotIn("delete_service", codenames)
 

@@ -37,10 +37,10 @@ class TenantMiddleware(MiddlewareMixin):
                 tenant = getattr(user, "tenant", None)
         request.tenant = tenant
         request.tenant_bypass = bypass
-        set_current_tenant(tenant, bypass=bypass)
+        set_current_tenant(tenant, bypass=bypass, user=user)
 
     def process_response(self, request, response):
         # Limpa o contexto ao fim da requisição — evita vazamento entre
         # requisições/threads reutilizadas.
-        set_current_tenant(None, bypass=False)
+        set_current_tenant(None, bypass=False, user=None)
         return response

@@ -1,8 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from .models import User
+
+
+# Perfis que exigem barbearia (tenant) obrigatório no cadastro.
+_TENANT_REQUIRED_ROLES = (User.Role.OWNER, User.Role.MANAGER, User.Role.PROFESSIONAL)
 
 
 @admin.register(User)
@@ -61,6 +66,21 @@ class CustomUserAdmin(UserAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
+        # Validação: role owner/manager/professional exige tenant preenchido.
+        # Injeta um clean no form que levanta ValidationError em `tenant`.
+        original_clean = form.clean
+
+        def _clean(form_self):
+            cleaned = original_clean(form_self)
+            role = cleaned.get("role")
+            tenant = cleaned.get("tenant")
+            if role in _TENANT_REQUIRED_ROLES and not tenant:
+                raise ValidationError(
+                    {"tenant": _("Informe a barbearia para este perfil.")}
+                )
+            return cleaned
+
+        form.clean = _clean
         if not request.user.is_superadmin:
             # Não-superadmin só pode criar/editar usuários do próprio tenant.
             tenant = getattr(request, "tenant", None)

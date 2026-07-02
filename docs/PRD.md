@@ -474,16 +474,16 @@ validar permissões diferentes
 
 🧪 SPRINT 4 — Barbearia + Página Pública
 CLI
-upload imagens OK ( )
+upload imagens OK (X)
 MANUAL
 acessar página pública
 validar layout e dados corretos
 
 🧪 SPRINT 5 — Serviços + Profissionais
 MANUAL (CRÍTICO)
-criar serviço
-vincular profissional
-validar regras de disponibilidade
+criar serviço (X)
+vincular profissional (X)
+validar regras de disponibilidade (X)
 
 🧪 SPRINT 6 — AGENDAMENTO (CORE)
 CLI

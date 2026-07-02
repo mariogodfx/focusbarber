@@ -1,0 +1,198 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FocusBarber · Painel do Profissional</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.iconify.design/icon/1.2.0/css/iconify.min.css">
+  <style>
+    :root {
+      --gold: #C8A97E; --gold-dark: #A8885E;
+      --black: #0A0A0A; --black-light: #141414; --black-medium: #1A1A1A;
+      --white: #FAFAF9; --gray: #6B6B6B; --gray-light: #999999;
+      --red: #E8A09A; --green: #A0D0A0;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--black); color: var(--white);
+      min-height: 100vh; padding: 2rem 1rem;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; }
+
+    /* Nav */
+    .nav {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom: 2rem; padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(200,169,126,0.15);
+    }
+    .nav .brand { font-size:1.3rem; letter-spacing:.15em; }
+    .nav .brand .amp { color: var(--gold); }
+    .nav .links { display:flex; gap:1.2rem; align-items:center; }
+    .nav a { color:var(--gray-light); text-decoration:none; font-size:.8rem; letter-spacing:.1em; text-transform:uppercase; transition:color .3s; }
+    .nav a:hover { color: var(--gold); }
+    .nav .user-email { color: var(--gold); font-size:.8rem; }
+
+    /* Messages */
+    .messages { margin-bottom: 1.5rem; }
+    .messages .msg {
+      padding:.7rem 1rem; margin-bottom:.5rem; font-size:.85rem;
+      border: 1px solid rgba(200,169,126,0.2); background: var(--black-light);
+    }
+    .messages .msg.success { border-color: rgba(160,208,160,0.3); color: var(--green); }
+    .messages .msg.error { border-color: rgba(232,160,154,0.3); color: var(--red); }
+    .messages .msg.warning { border-color: rgba(200,169,126,0.4); color: var(--gold); }
+
+    h2 {
+      font-size:1rem; letter-spacing:.15em; text-transform:uppercase;
+      color: var(--gold); margin-bottom: 1rem; margin-top: 2.5rem;
+    }
+    h2:first-of-type { margin-top: 0; }
+
+    /* Cards */
+    .card {
+      background: var(--black-light);
+      border: 1px solid rgba(200,169,126,0.1);
+      padding: 1.2rem; margin-bottom: .8rem;
+    }
+    .card .header {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom: .6rem;
+    }
+    .card .tenant-name { font-size:1rem; font-weight:600; }
+    .card .meta { font-size:.78rem; color: var(--gray-light); }
+    .card .actions { display:flex; gap:.5rem; margin-top:.8rem; flex-wrap:wrap; }
+
+    /* Status badge */
+    .badge {
+      display:inline-block; padding:.2rem .6rem; font-size:.68rem;
+      letter-spacing:.1em; text-transform:uppercase; font-weight:600;
+    }
+    .badge.pending { background: rgba(200,169,126,0.15); color: var(--gold); border:1px solid var(--gold); }
+    .badge.accepted { background: rgba(160,208,160,0.15); color: var(--green); border:1px solid var(--green); }
+    .badge.rejected { background: rgba(232,160,154,0.15); color: var(--red); border:1px solid var(--red); }
+    .badge.cancelled { background: rgba(107,107,107,0.2); color: var(--gray-light); border:1px solid var(--gray); }
+
+    /* Buttons */
+    .btn {
+      display:inline-block; text-decoration:none; cursor:pointer;
+      padding:.5rem 1rem; font-size:.75rem; letter-spacing:.1em;
+      text-transform:uppercase; font-weight:600; border:none;
+      transition: background .3s, opacity .3s;
+    }
+    .btn-accept { background: var(--green); color: var(--black); }
+    .btn-reject { background: rgba(232,160,154,0.2); color: var(--red); border:1px solid var(--red); }
+    .btn-cancel { background: transparent; color: var(--gray-light); border:1px solid var(--gray); }
+    .btn-admin { background: var(--gold); color: var(--black); }
+    .btn:hover { opacity: .85; }
+
+    /* Barbershop list */
+    .barber-card {
+      display:flex; align-items:center; justify-content:space-between;
+      background: var(--black-light);
+      border: 1px solid rgba(200,169,126,0.1);
+      padding: 1rem 1.2rem; margin-bottom:.6rem;
+    }
+    .barber-card .info { display:flex; flex-direction:column; gap:.2rem; }
+    .barber-card .name { font-weight:600; font-size:.95rem; }
+    .barber-card .role { font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color: var(--gold); }
+    .barber-card .status { font-size:.72rem; color: var(--gray-light); }
+
+    .empty { color: var(--gray); font-size:.85rem; padding:1rem 0; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Nav -->
+    <nav class="nav">
+      <div class="brand">B<span class="amp">&amp;</span>C <small style="font-size:.65rem;color:var(--gray-light);letter-spacing:.2em">FOCUSBARBER</small></div>
+      <div class="links">
+        <span class="user-email">{{ user.email }}</span>
+        <a href="{% url 'base:profile' %}">Perfil</a>
+        {% if user.is_staff %}<a href="/admin/">Admin</a>{% endif %}
+        <form method="post" action="{% url 'base:logout' %}" style="display:inline">{% csrf_token %}
+          <button type="submit" style="background:none;border:none;color:var(--gray-light);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Sair</button>
+        </form>
+      </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+      <div class="messages">
+        {% for msg in messages %}
+          <div class="msg {{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Convites -->
+    <h2>Convites recebidos</h2>
+    {% if invitations %}
+      {% for inv in invitations %}
+        <div class="card">
+          <div class="header">
+            <div>
+              <span class="tenant-name">{{ inv.tenant.name }}</span>
+              <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
+            </div>
+          </div>
+          <div class="meta">
+            Convidado por {{ inv.invited_by.email }} em {{ inv.created_at|date:"d/m/Y" }}
+            {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
+          </div>
+          {% if inv.status == "pending" %}
+            <div class="actions">
+              <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                <button type="submit" class="btn btn-accept">Aceitar</button>
+              </form>
+              <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                <button type="submit" class="btn btn-reject">Rejeitar</button>
+              </form>
+              <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                <button type="submit" class="btn btn-cancel">Cancelar</button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">Nenhum convite recebido.</p>
+    {% endif %}
+
+    <!-- Barbearias vinculadas -->
+    <h2>Barbearias vinculadas</h2>
+    {% if memberships %}
+      {% for m in memberships %}
+        <div class="barber-card">
+          <div class="info">
+            <span class="name">{{ m.tenant.name }}</span>
+            <span class="role">{{ m.get_role_display }}</span>
+          </div>
+          <div class="status">Ativo</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">Nenhuma barbearia vinculada.</p>
+    {% endif %}
+
+    <!-- Perfis profissionais -->
+    <h2>Perfis de profissional</h2>
+    {% if professionals %}
+      {% for p in professionals %}
+        <div class="barber-card">
+          <div class="info">
+            <span class="name">{{ p.tenant.name }}</span>
+            <span class="status">{{ p.is_active|yesno:"Ativo,Inativo" }}</span>
+          </div>
+          <a href="{% url 'publico:barbearia' p.tenant.slug %}" class="btn btn-cancel">Ver página</a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="empty">Nenhum perfil de profissional cadastrado.</p>
+    {% endif %}
+  </div>
+</body>
+</html>
