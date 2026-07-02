@@ -44,6 +44,9 @@ ROLE_PERMISSIONS = {
         "core.change_tenantmembership",
         "core.view_professionalinvitation", "core.add_professionalinvitation",
         "core.change_professionalinvitation",
+        # Sprint 6 - Agendamentos.
+        "core.view_appointment", "core.add_appointment", "core.change_appointment",
+        "core.delete_appointment",
     ],
     "manager": [
         # Operação: vê a barbearia (somente leitura).
@@ -64,6 +67,9 @@ ROLE_PERMISSIONS = {
         "core.view_tenantmembership",
         "core.view_professionalinvitation", "core.add_professionalinvitation",
         "core.change_professionalinvitation",
+        # Sprint 6 - Agendamentos.
+        "core.view_appointment", "core.add_appointment", "core.change_appointment",
+        "core.delete_appointment",
     ],
     "professional": [
         # Execução: vê serviços; sem alterar/inativar (is_active é gestão).
@@ -76,6 +82,8 @@ ROLE_PERMISSIONS = {
         # Sprint 5+ — vê próprios vínculos e convites direcionados.
         "core.view_tenantmembership",
         "core.view_professionalinvitation", "core.change_professionalinvitation",
+        # Sprint 6 - Agendamentos (leitura + alteracao).
+        "core.view_appointment", "core.change_appointment",
     ],
     "client": [
         # Acesso público: vê próprios dados (tratados por views específicas).

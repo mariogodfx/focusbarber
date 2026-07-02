@@ -880,3 +880,181 @@ class ProfessionalAvailability(TenantOwnedModel):
                                 "end": _fmt(other_end),
                             }
                         )
+
+
+# ---------- Sprint 6 — Agendamento (Core) ----------
+
+
+class Appointment(TenantOwnedModel):
+    """Agendamento de um cliente com um profissional (Sprint 6 — PRD §10/§11).
+
+    Fluxo: Cliente -> Profissional -> Servico -> Horario -> Confirmacao.
+    Regras de negocio (PRD §11):
+      - Nenhum conflito de horario por profissional.
+      - Multi-tenant obrigatorio em todas queries.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Aguardando confirmacao")
+        CONFIRMED = "confirmed", _("Confirmado")
+        CANCELLED = "cancelled", _("Cancelado")
+        COMPLETED = "completed", _("Concluido")
+
+    professional = models.ForeignKey(
+        Professional,
+        on_delete=models.CASCADE,
+        related_name="appointments",
+        verbose_name=_("profissional"),
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.CASCADE,
+        related_name="appointments",
+        verbose_name=_("servico"),
+    )
+    client_name = models.CharField(_("nome do cliente"), max_length=120)
+    client_phone = models.CharField(_("telefone"), max_length=20)
+    client_email = models.EmailField(_("e-mail"), blank=True)
+    date = models.DateField(_("data"))
+    start_time = models.TimeField(_("inicio"))
+    end_time = models.TimeField(_("fim"), blank=True, null=True)
+    status = models.CharField(
+        _("status"), max_length=20, choices=Status.choices, default=Status.PENDING,
+    )
+    notes = models.TextField(_("observacoes"), blank=True)
+
+    class Meta:
+        verbose_name = _("agendamento")
+        verbose_name_plural = _("agendamentos")
+        ordering = ("-date", "-start_time")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("tenant", "professional", "date", "start_time"),
+                condition=models.Q(status__in=["pending", "confirmed"]),
+                name="unique_active_appointment_per_slot",
+            ),
+        ]
+
+    def __str__(self):
+        return "{} - {} - {} {}".format(
+            self.client_name, self.professional, self.date, _fmt(self.start_time),
+        )
+
+    @property
+    def is_active_status(self):
+        return self.status in (self.Status.PENDING, self.Status.CONFIRMED)
+
+    def _compute_end_time(self):
+        from datetime import datetime, timedelta
+        base = datetime(2000, 1, 1)
+        start_dt = datetime.combine(base, self.start_time)
+        end_dt = start_dt + timedelta(minutes=self.service.duration_minutes)
+        return end_dt.time()
+
+    def clean(self):
+        super().clean()
+        errors = {}
+
+        if not self.client_name or not self.client_name.strip():
+            errors["client_name"] = _("Nome do cliente e obrigatorio.")
+        if not self.client_phone or not self.client_phone.strip():
+            errors["client_phone"] = _("Telefone e obrigatorio.")
+        if not self.date:
+            errors["date"] = _("Data e obrigatoria.")
+        if not self.start_time:
+            errors["start_time"] = _("Horario de inicio e obrigatorio.")
+
+        if self.professional_id and self.service_id:
+            if self.professional.tenant_id != self.tenant_id:
+                errors["professional"] = _("Profissional nao pertence a esta barbearia.")
+            if self.service.tenant_id != self.tenant_id:
+                errors["service"] = _("Servico nao pertence a esta barbearia.")
+            if self.professional.tenant_id != self.service.tenant_id:
+                errors["service"] = _("Profissional e servico pertencem a barbearias diferentes.")
+            if not self.professional.is_active:
+                errors["professional"] = _("Profissional inativo.")
+            if not self.service.is_active:
+                errors["service"] = _("Servico inativo.")
+            vinculo = ProfessionalService.objects.bypass_tenant().filter(
+                tenant=self.tenant, professional=self.professional,
+                service=self.service,
+            ).exists()
+            if not vinculo:
+                errors["service"] = _("O profissional nao oferece este servico.")
+
+        if self.date and self.start_time and self.service_id:
+            import datetime as dt_mod
+
+            if self.date < dt_mod.date.today():
+                errors["date"] = _("Nao e possivel agendar em data passada.")
+
+            self.end_time = self._compute_end_time()
+
+            weekday = self.date.weekday()
+            numeric_weekday = (weekday + 1) % 7
+
+            bh = (
+                BusinessHours.objects.bypass_tenant()
+                .filter(tenant=self.tenant, weekday=numeric_weekday)
+                .first()
+            )
+            if bh is None or not bh.is_open:
+                errors["date"] = _("A barbearia esta fechada neste dia.")
+            else:
+                for interval in bh.working_intervals:
+                    if self.start_time >= interval[0] and self.end_time <= interval[1]:
+                        break
+                else:
+                    errors["start_time"] = _(
+                        "Horario fora do expediente da barbearia (%(o)s - %(c)s)."
+                    ) % {"o": _fmt(bh.open_time), "c": _fmt(bh.close_time)}
+
+            avail = (
+                ProfessionalAvailability.objects.bypass_tenant()
+                .filter(
+                    tenant=self.tenant,
+                    professional=self.professional,
+                    weekday=numeric_weekday,
+                ).first()
+            )
+            if avail is None or not avail.available:
+                errors["date"] = _("Profissional indisponivel neste dia.")
+            else:
+                avail_intervals = _availability_working_intervals(avail)
+                for interval in avail_intervals:
+                    if self.start_time >= interval[0] and self.end_time <= interval[1]:
+                        break
+                else:
+                    errors["start_time"] = _(
+                        "Horario fora da disponibilidade do profissional."
+                    )
+
+            if self.professional_id and not errors.get("professional"):
+                conflicts = (
+                    Appointment.objects.bypass_tenant()
+                    .filter(
+                        tenant=self.tenant,
+                        professional=self.professional,
+                        date=self.date,
+                        status__in=[self.Status.PENDING, self.Status.CONFIRMED],
+                    )
+                    .exclude(pk=self.pk)
+                )
+                for other in conflicts:
+                    if _intervals_overlap(
+                        self.start_time, self.end_time,
+                        other.start_time, other.end_time,
+                    ):
+                        errors["start_time"] = _(
+                            "Conflito de horario: ja existe agendamento "
+                            "as %(s)s-%(e)s."
+                        ) % {"s": _fmt(other.start_time), "e": _fmt(other.end_time)}
+                        break
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        if self.service_id and self.start_time:
+            self.end_time = self._compute_end_time()
+        super().save(*args, **kwargs)

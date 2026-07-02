@@ -1,0 +1,40 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agendamento Confirmado - {{ barbearia.name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--gold:#C8A97E;--gold-dark:#A8885E;--black:#0A0A0A;--black-light:#141414;--white:#FAFAF9;--gray:#6B6B6B;--gray-light:#999999;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',sans-serif;--display:'Bebas Neue',Impact,sans-serif;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    body{font-family:var(--sans);background:var(--black);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem}
+    .card{max-width:480px;width:100%;text-align:center}
+    .icon-circle{width:80px;height:80px;border:1px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 2rem;font-size:2.5rem;color:var(--gold)}
+    h1{font-family:var(--display);font-size:clamp(2rem,5vw,3rem);letter-spacing:0.05em;margin-bottom:1rem}
+    h1 .italic{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--gold)}
+    .desc{font-size:0.95rem;color:var(--gray-light);line-height:1.7;margin-bottom:2.5rem}
+    .actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+    .btn-primary{display:inline-flex;align-items:center;gap:0.8rem;background:var(--gold);color:var(--black);padding:1rem 2rem;font-size:0.7rem;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.4s}
+    .btn-primary:hover{background:var(--gold-dark)}
+    .btn-outline{display:inline-flex;align-items:center;gap:0.8rem;border:1px solid rgba(200,169,126,0.25);color:var(--white);padding:1rem 2rem;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;transition:all 0.3s}
+    .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-circle">
+      <span class="iconify" data-icon="solar:check-circle-bold"></span>
+    </div>
+    <h1>AGENDAMENTO <span class="italic">Confirmado</span></h1>
+    <p class="desc">Seu agendamento em <strong>{{ barbearia.name }}</strong> foi recebido e esta aguardando confirmacao. Entraremos em contato pelo telefone informado.</p>
+    <div class="actions">
+      <a href="{% url 'publico:barbearia' barbearia.slug %}" class="btn-primary"><span>Voltar a pagina</span></a>
+      <a href="{% url 'publico:agendar' barbearia.slug %}" class="btn-outline"><span>Novo agendamento</span></a>
+    </div>
+  </div>
+</body>
+</html>

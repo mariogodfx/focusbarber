@@ -1,0 +1,244 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agendar - {{ barbearia.name }} - FocusBarber</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--gold:#C8A97E;--gold-dark:#A8885E;--black:#0A0A0A;--black-light:#141414;--black-medium:#1A1A1A;--white:#FAFAF9;--gray:#6B6B6B;--gray-light:#999999;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',sans-serif;--display:'Bebas Neue',Impact,sans-serif;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    body{font-family:var(--sans);background:var(--black);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100vh}
+    a{text-decoration:none;color:inherit}
+    .wrap{max-width:640px;margin:0 auto;padding:7rem 1.5rem 4rem}
+    .nav{position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,10,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,169,126,0.1)}
+    .nav-logo{font-family:var(--display);font-size:1.5rem;letter-spacing:0.15em;color:var(--white)}
+    .nav-logo .amp{color:var(--gold);font-family:var(--serif);font-style:italic}
+    .nav-back{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);padding:0.6rem 1.2rem;transition:all 0.3s}
+    .nav-back:hover{background:var(--gold);color:var(--black)}
+    .section-tag{display:inline-flex;align-items:center;gap:1rem;margin-bottom:1rem}
+    .section-tag-line{width:30px;height:1px;background:var(--gold)}
+    .section-tag-text{font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold)}
+    h1{font-family:var(--display);font-size:clamp(2rem,5vw,3rem);letter-spacing:0.05em;line-height:1.05;margin-bottom:0.5rem}
+    h1 .italic{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--gold)}
+    .subtitle{font-size:0.9rem;color:var(--gray-light);margin-bottom:2.5rem;line-height:1.6}
+    .form-group{margin-bottom:1.5rem}
+    .form-group label{display:block;font-size:0.65rem;letter-spacing:0.25em;text-transform:uppercase;color:var(--gray-light);margin-bottom:0.5rem}
+    .form-group select,.form-group input{width:100%;padding:0.85rem 0;background:transparent;border:none;border-bottom:1px solid rgba(200,169,126,0.2);color:var(--white);font-family:var(--sans);font-size:0.95rem;outline:none;transition:border-color 0.3s}
+    .form-group select:focus,.form-group input:focus{border-bottom-color:var(--gold)}
+    .form-group select{-webkit-appearance:none;cursor:pointer}
+    .form-group select option{background:var(--black);color:var(--white)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+    .slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:0.5rem;margin-top:0.5rem}
+    .slot-btn{padding:0.7rem 0;text-align:center;border:1px solid rgba(200,169,126,0.2);background:var(--black-light);color:var(--white);font-size:0.8rem;cursor:pointer;transition:all 0.3s;font-family:var(--sans)}
+    .slot-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .slot-btn.selected{background:var(--gold);color:var(--black);border-color:var(--gold)}
+    .slot-btn:disabled{opacity:0.3;cursor:default}
+    .hidden{display:none}
+    .btn-submit{margin-top:1.5rem;width:100%;padding:1.1rem;background:var(--gold);color:var(--black);border:none;font-size:0.75rem;font-weight:600;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;transition:background 0.4s;display:flex;align-items:center;justify-content:center;gap:0.8rem}
+    .btn-submit:hover{background:var(--gold-dark)}
+    .btn-submit:disabled{opacity:0.5;cursor:default}
+    .btn-fetch{padding:0.85rem 1.5rem;font-size:0.65rem}
+    .errors{background:rgba(200,80,60,0.1);border:1px solid rgba(200,80,60,0.3);padding:0.8rem 1rem;margin-bottom:1.5rem}
+    .errors li{color:#E8A09A;font-size:0.82rem;list-style:none;margin-bottom:0.3rem}
+    .step-indicator{display:flex;gap:0.5rem;margin-bottom:2rem}
+    .step{flex:1;height:2px;background:rgba(200,169,126,0.15);transition:background 0.3s}
+    .step.active{background:var(--gold)}
+    .empty-slots{color:var(--gray);font-size:0.82rem;padding:1rem 0;text-align:center}
+    @media(max-width:640px){.form-row{grid-template-columns:1fr}.wrap{padding:6rem 1.25rem 3rem}}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="{% url 'publico:barbearia' barbearia.slug %}" class="nav-logo">{{ barbearia.name|upper }}</a>
+    <a href="{% url 'publico:barbearia' barbearia.slug %}" class="nav-back">Voltar</a>
+  </nav>
+
+  <div class="wrap">
+    <div class="section-tag">
+      <span class="section-tag-line"></span>
+      <span class="section-tag-text">Agendamento</span>
+    </div>
+    <h1>AGENDAR <span class="italic">Horario</span></h1>
+    <p class="subtitle">Selecione o profissional, servico, data e horario para o seu atendimento em {{ barbearia.name }}.</p>
+
+    <div class="step-indicator">
+      <div class="step active" id="step1"></div>
+      <div class="step" id="step2"></div>
+      <div class="step" id="step3"></div>
+    </div>
+
+    {% if errors %}
+    <div class="errors">
+      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'publico:agendar' barbearia.slug %}" id="bookingForm">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="professional">Profissional</label>
+        <select name="professional" id="professional" onchange="onProfChange()">
+          <option value="">Selecione...</option>
+          {% for p in profissionais %}
+          <option value="{{ p.pk }}" {% if selected_prof and selected_prof.pk == p.pk %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="service">Servico</label>
+        <select name="service" id="service" onchange="resetSlots()">
+          <option value="">Selecione...</option>
+          {% for s in servicos %}
+          <option value="{{ s.pk }}" data-dur="{{ s.duration_minutes }}" {% if selected_svc and selected_svc.pk == s.pk %}selected{% endif %}>{{ s.name }} ({{ s.duration_minutes }} min)</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="date">Data</label>
+          <input type="date" name="date" id="date" value="{{ date_str }}" min="">
+        </div>
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button type="button" class="btn-submit btn-fetch" onclick="fetchSlots()">
+            <span>Buscar Horarios</span>
+            <span class="iconify" data-icon="solar:calendar-search-linear"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" id="slotsSection" style="{% if not available_slots %}display:none{% endif %}">
+        <label>Horarios disponiveis</label>
+        {% if available_slots %}
+        <div class="slots-grid">
+          {% for slot in available_slots %}
+          <button type="button" class="slot-btn" data-time="{{ slot|time:'H:i' }}" onclick="selectSlot(this)">{{ slot|time:'H:i' }}</button>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-slots">Clique em "Buscar Horarios" apos selecionar os dados acima.</p>
+        {% endif %}
+      </div>
+
+      <div id="clientSection" style="{% if not selected_prof or not selected_svc or not selected_date %}display:none{% endif %}">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="client_name">Nome</label>
+            <input type="text" name="client_name" id="client_name" value="{{ form_data.client_name|default:'' }}" placeholder="Seu nome" required>
+          </div>
+          <div class="form-group">
+            <label for="client_phone">Telefone</label>
+            <input type="tel" name="client_phone" id="client_phone" value="{{ form_data.client_phone|default:'' }}" placeholder="(11) 99999-9999" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="client_email">E-mail (opcional)</label>
+          <input type="email" name="client_email" id="client_email" value="{{ form_data.client_email|default:'' }}" placeholder="voce@email.com">
+        </div>
+      </div>
+
+      <input type="hidden" name="start_time" id="start_time" value="">
+
+      <button type="submit" class="btn-submit" id="submitBtn" disabled>
+        <span>Confirmar Agendamento</span>
+        <span class="iconify" data-icon="solar:arrow-right-linear"></span>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    var servicosPorProf = {{ servicos_por_prof_json|safe }};
+
+    function onProfChange() {
+      var profId = document.getElementById('professional').value;
+      var svcSelect = document.getElementById('service');
+      var allowedIds = servicosPorProf[profId] || [];
+      for (var i = 0; i < svcSelect.options.length; i++) {
+        var opt = svcSelect.options[i];
+        if (opt.value === '') { continue; }
+        opt.style.display = allowedIds.indexOf(parseInt(opt.value)) !== -1 ? '' : 'none';
+      }
+      resetSlots();
+    }
+
+    function resetSlots() {
+      var slotsSection = document.getElementById('slotsSection');
+      var clientSection = document.getElementById('clientSection');
+      if (slotsSection) { slotsSection.style.display = 'none'; }
+      if (clientSection) { clientSection.style.display = 'none'; }
+      document.getElementById('start_time').value = '';
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step3').classList.remove('active');
+    }
+
+    function fetchSlots() {
+      var prof = document.getElementById('professional').value;
+      var svc = document.getElementById('service').value;
+      var date = document.getElementById('date').value;
+      var slotsSection = document.getElementById('slotsSection');
+      var clientSection = document.getElementById('clientSection');
+
+      if (!prof || !svc || !date) {
+        alert('Selecione profissional, servico e data primeiro.');
+        return;
+      }
+
+      var params = new URLSearchParams({
+        professional: prof, service: svc, date: date
+      });
+      var url = '{% url 'publico:agendar' barbearia.slug %}?' + params.toString();
+
+      fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+        .then(function(r) { return r.text(); })
+        .then(function(html) {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          var newSlots = doc.getElementById('slotsSection');
+          if (newSlots) {
+            slotsSection.innerHTML = newSlots.innerHTML;
+            slotsSection.style.display = '';
+            document.getElementById('step2').classList.add('active');
+          }
+          if (clientSection) clientSection.style.display = 'none';
+          document.getElementById('start_time').value = '';
+          document.getElementById('submitBtn').disabled = true;
+          document.getElementById('step3').classList.remove('active');
+        })
+        .catch(function() { alert('Erro ao buscar horarios.'); });
+    }
+
+    function selectSlot(btn) {
+      var allBtns = document.querySelectorAll('.slot-btn');
+      allBtns.forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+
+      var time = btn.getAttribute('data-time');
+      document.getElementById('start_time').value = time;
+
+      var clientSection = document.getElementById('clientSection');
+      if (clientSection) clientSection.style.display = '';
+      document.getElementById('step3').classList.add('active');
+
+      var submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = false;
+    }
+
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').min = today;
+
+    {% if selected_prof and selected_svc and selected_date %}
+    document.getElementById('step2').classList.add('active');
+    onProfChange();
+    document.getElementById('step2').classList.add('active');
+    {% endif %}
+  </script>
+</body>
+</html>

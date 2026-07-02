@@ -142,7 +142,7 @@
   <!-- NAV -->
   <nav class="nav" id="nav">
     <a href="#top" class="nav-logo">{{ barbearia.name|upper }}</a>
-    <a href="#servicos" class="nav-cta">Agendar</a>
+    <a href="{% url 'publico:agendar' barbearia.slug %}" class="nav-cta">Agendar</a>
   </nav>
 
   <!-- HERO -->
@@ -160,7 +160,7 @@
       <p class="hero-desc">{{ barbearia.description|truncatewords:40 }}</p>
       {% endif %}
       <div class="hero-actions">
-        <a href="#servicos" class="btn-primary"><span>Ver Serviços</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
+        <a href="{% url 'publico:agendar' barbearia.slug %}" class="btn-primary"><span>Agendar Agora</span><span class="iconify" data-icon="solar:arrow-right-linear"></span></a>
         {% if barbearia.whatsapp %}<a href="https://wa.me/{{ barbearia.whatsapp|cut:'+' }}" class="btn-outline"><span>WhatsApp</span><span class="iconify" data-icon="solar:chat-round-dots-linear"></span></a>{% endif %}
       </div>
     </div>

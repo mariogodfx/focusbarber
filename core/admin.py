@@ -6,6 +6,7 @@ from django.utils.decorators import method_decorator
 from django.utils.http import unquote
 
 from .models import (
+    Appointment,
     BusinessHours,
     Professional,
     ProfessionalAvailability,
@@ -678,3 +679,99 @@ class ProfessionalAdmin(TenantContextMixin, admin.ModelAdmin):
                 if tenant is not None:
                     initial["tenant"] = tenant
         return initial
+
+
+# ---------- Sprint 6 — Agendamento (Core) ----------
+
+
+@admin.register(Appointment)
+class AppointmentAdmin(TenantContextMixin, admin.ModelAdmin):
+    list_display = ("date", "start_time", "client_name", "professional",
+                    "service", "status")
+    list_filter = ("status", "date", "professional")
+    search_fields = ("client_name", "client_phone", "client_email")
+    date_hierarchy = "date"
+    ordering = ("-date", "-start_time")
+    actions = ("confirmar_agendamentos", "cancelar_agendamentos")
+
+    fieldsets = (
+        (None, {"fields": ("tenant", "professional", "service", "status")}),
+        ("Cliente", {"fields": ("client_name", "client_phone", "client_email")}),
+        ("Horario", {"fields": ("date", "start_time", "end_time")}),
+        ("Extras", {"fields": ("notes",)}),
+    )
+    readonly_fields = ("end_time",)
+
+    def get_queryset(self, request):
+        qs = Appointment.objects.bypass_tenant()
+        if request.user.is_superadmin:
+            return qs
+        tenant_ids = _managed_tenant_ids(
+            request.user, roles=("owner", "manager", "professional")
+        )
+        if tenant_ids:
+            return qs.filter(tenant_id__in=tenant_ids)
+        return qs.none()
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        _restrict_tenant_field_to_memberships(
+            form, request,
+            roles=("owner", "manager", "professional"),
+            obj=obj,
+        )
+        if not request.user.is_superadmin:
+            tenant_ids = _managed_tenant_ids(
+                request.user,
+                roles=("owner", "manager", "professional"),
+            )
+            if "professional" in form.base_fields and tenant_ids:
+                form.base_fields["professional"].queryset = (
+                    Professional.objects.bypass_tenant().filter(
+                        tenant_id__in=tenant_ids, is_active=True,
+                    )
+                )
+            if "service" in form.base_fields and tenant_ids:
+                form.base_fields["service"].queryset = (
+                    Service.objects.bypass_tenant().filter(
+                        tenant_id__in=tenant_ids, is_active=True,
+                    )
+                )
+        return form
+
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superadmin and obj.tenant_id is None:
+            tenant_ids = _managed_tenant_ids(
+                request.user,
+                roles=("owner", "manager", "professional"),
+            )
+            obj.tenant_id = tenant_ids[0] if tenant_ids else None
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description="Confirmar agendamentos selecionados")
+    def confirmar_agendamentos(self, request, queryset):
+        from django.contrib import messages
+        count = 0
+        for apt in queryset.filter(status=Appointment.Status.PENDING):
+            apt.status = Appointment.Status.CONFIRMED
+            apt.save(update_fields=["status", "updated_at"])
+            count += 1
+        if count:
+            messages.success(request, f"{count} agendamento(s) confirmado(s).")
+        else:
+            messages.warning(request, "Nenhum agendamento pendente selecionado.")
+
+    @admin.action(description="Cancelar agendamentos selecionados")
+    def cancelar_agendamentos(self, request, queryset):
+        from django.contrib import messages
+        count = 0
+        for apt in queryset.filter(
+            status__in=[Appointment.Status.PENDING, Appointment.Status.CONFIRMED]
+        ):
+            apt.status = Appointment.Status.CANCELLED
+            apt.save(update_fields=["status", "updated_at"])
+            count += 1
+        if count:
+            messages.success(request, f"{count} agendamento(s) cancelado(s).")
+        else:
+            messages.warning(request, "Nenhum agendamento ativo selecionado.")

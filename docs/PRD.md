@@ -487,7 +487,7 @@ validar regras de disponibilidade (X)
 
 🧪 SPRINT 6 — AGENDAMENTO (CORE)
 CLI
-bloqueio de conflito ( )
+bloqueio de conflito (X)
 MANUAL (CRÍTICO)
 tentar dois agendamentos no mesmo horário
 validar bloqueio
