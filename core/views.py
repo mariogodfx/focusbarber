@@ -13,9 +13,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
+from django.db import models
+
 from .models import (
+    Appointment,
     Professional,
     ProfessionalInvitation,
+    Service,
     TenantMembership,
     current_tenant,
     current_user,
@@ -41,13 +45,22 @@ def _professional_dashboard_context(user):
         Professional.objects.bypass_tenant()
         .filter(user=user)
         .select_related("tenant")
-        .prefetch_related("services")
+        .prefetch_related(
+            models.Prefetch("services", queryset=Service.objects.bypass_tenant())
+        )
         .order_by("tenant__name")
+    )
+    appointments = (
+        Appointment.objects.bypass_tenant()
+        .filter(professional__user=user)
+        .select_related("professional", "service", "professional__tenant")
+        .order_by("-date", "-start_time")
     )
     return {
         "invitations": invitations,
         "memberships": memberships,
         "professionals": professionals,
+        "appointments": appointments,
     }
 
 
@@ -138,4 +151,55 @@ def convite_cancelar(request, pk):
         messages.error(request, "; ".join(e.messages))
     finally:
         set_current_tenant(pt, bypass=False, user=pu)
+    return redirect("core:painel")
+
+
+@login_required
+def appointment_confirmar(request, pk):
+    if request.method != "POST":
+        return redirect("core:painel")
+    appt = get_object_or_404(
+        Appointment.objects.bypass_tenant(),
+        pk=pk, professional__user=request.user,
+    )
+    if appt.status == Appointment.Status.PENDING:
+        appt.status = Appointment.Status.CONFIRMED
+        appt.save(update_fields=["status"])
+        messages.success(request, "Agendamento de '{}' confirmado.".format(appt.client_name))
+    else:
+        messages.error(request, "So e possivel confirmar agendamentos pendentes.")
+    return redirect("core:painel")
+
+
+@login_required
+def appointment_concluir(request, pk):
+    if request.method != "POST":
+        return redirect("core:painel")
+    appt = get_object_or_404(
+        Appointment.objects.bypass_tenant(),
+        pk=pk, professional__user=request.user,
+    )
+    if appt.status == Appointment.Status.CONFIRMED:
+        appt.status = Appointment.Status.COMPLETED
+        appt.save(update_fields=["status"])
+        messages.success(request, "Agendamento de '{}' concluido.".format(appt.client_name))
+    else:
+        messages.error(request, "So e possivel concluir agendamentos confirmados.")
+    return redirect("core:painel")
+
+
+@login_required
+def appointment_cancelar(request, pk):
+    if request.method != "POST":
+        return redirect("core:painel")
+    appt = get_object_or_404(
+        Appointment.objects.bypass_tenant(),
+        pk=pk, professional__user=request.user,
+    )
+    if appt.status in (Appointment.Status.PENDING, Appointment.Status.CONFIRMED):
+        appt.status = Appointment.Status.CANCELLED
+        appt.save(update_fields=["status"])
+        messages.success(request, "Agendamento de '{}' cancelado.".format(appt.client_name))
+    else:
+        messages.error(request, "Este agendamento nao pode ser cancelado.")
     return redirect("core:painel")

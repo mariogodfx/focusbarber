@@ -83,6 +83,8 @@ def _get_available_slots(tenant, professional, date_obj, duration_min):
         ).values_list("start_time", "end_time")
     )
 
+    now = datetime.now()
+    is_today = date_obj == now.date()
     slots = []
     for interval_start, interval_end in avail_intervals:
         base = datetime(2000, 1, 1)
@@ -91,6 +93,9 @@ def _get_available_slots(tenant, professional, date_obj, duration_min):
         step = timedelta(minutes=duration_min)
         while cur + step <= end_dt:
             slot_start = cur.time()
+            if is_today and slot_start <= now.time():
+                cur += step
+                continue
             slot_end = (cur + step).time()
             conflict = False
             for b_start, b_end in booked:
@@ -237,6 +242,12 @@ class AgendamentoView(View):
                 start_time = datetime.strptime(start_time_str, "%H:%M").time()
             except ValueError:
                 errors.append("Horario invalido.")
+
+        if not errors and apt_date and apt_date < datetime.now().date():
+            errors.append("Nao e possivel agendar em data passada.")
+
+        if not errors and apt_date == datetime.now().date() and start_time and start_time <= datetime.now().time():
+            errors.append("Nao e possivel agendar um horario que ja passou.")
 
         if not errors and prof and svc and apt_date and start_time:
             set_current_tenant(barbearia, bypass=False, user=None)
