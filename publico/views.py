@@ -123,6 +123,12 @@ class AgendamentoView(View):
             Service.objects.bypass_tenant()
             .filter(tenant=barbearia, is_active=True)
         )
+        horarios = list(
+            BusinessHours.objects.bypass_tenant()
+            .filter(tenant=barbearia)
+            .order_by("weekday")
+        )
+        today_weekday = (datetime.now().weekday() + 1) % 7
 
         prof_id = request.GET.get("professional")
         svc_id = request.GET.get("service")
@@ -164,6 +170,8 @@ class AgendamentoView(View):
             "barbearia": barbearia,
             "profissionais": profissionais,
             "servicos": servicos,
+            "horarios": horarios,
+            "today_weekday": today_weekday,
             "servicos_por_prof_json": json.dumps(servicos_por_prof),
             "selected_prof": selected_prof,
             "selected_svc": selected_svc,
@@ -261,6 +269,12 @@ class AgendamentoView(View):
             Service.objects.bypass_tenant()
             .filter(tenant=barbearia, is_active=True)
         )
+        horarios = list(
+            BusinessHours.objects.bypass_tenant()
+            .filter(tenant=barbearia)
+            .order_by("weekday")
+        )
+        today_weekday = (datetime.now().weekday() + 1) % 7
 
         has_searched = bool(prof and svc and apt_date)
         available_slots = []
@@ -273,6 +287,8 @@ class AgendamentoView(View):
             "barbearia": barbearia,
             "profissionais": profissionais,
             "servicos": servicos,
+            "horarios": horarios,
+            "today_weekday": today_weekday,
             "selected_prof": prof,
             "selected_svc": svc,
             "selected_date": apt_date,

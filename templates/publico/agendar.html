@@ -17,7 +17,20 @@
     ::-webkit-scrollbar{width:6px}
     ::-webkit-scrollbar-track{background:var(--black)}
     ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
-    .wrap{max-width:640px;margin:0 auto;padding:7rem 1.5rem 4rem}
+    .wrap{display:grid;grid-template-columns:1fr 360px;gap:4rem;padding:7rem 5rem 4rem;align-items:start}
+    .wrap-inner{max-width:720px}
+    .wrap-info{background:var(--black-light);border:1px solid rgba(200,169,126,.15);padding:2rem;position:sticky;top:7rem}
+    .wrap-info-title{font-family:var(--display);font-size:1.15rem;letter-spacing:.15em;color:var(--gold);margin-bottom:1.25rem;padding-bottom:.6rem;border-bottom:1px solid rgba(200,169,126,.12)}
+    .wrap-info-item{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:1rem}
+    .wrap-info-item .iconify{font-size:1.1rem;color:var(--gold);margin-top:.15rem;flex-shrink:0}
+    .wrap-info-item p,.wrap-info-link{font-size:.85rem;line-height:1.6;color:var(--gray-light)}
+    .wrap-info-link{transition:color .3s ease}
+    .wrap-info-link:hover{color:var(--gold)}
+    .wrap-info-hours{margin-top:.5rem}
+    .wrap-info-hours-row{display:flex;justify-content:space-between;padding:.35rem 0;font-size:.8rem;color:var(--gray-light);border-bottom:1px solid rgba(200,169,126,.05)}
+    .wrap-info-hours-row.today{color:var(--gold)}
+    .wrap-info-hours-row .day{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+    .wrap-info-hours-row .time{font-family:var(--sans);font-size:.75rem}
     .nav{position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.5rem 3rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s var(--ease-out-quart)}
     .nav.scrolled{padding:1rem 3rem;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,169,126,.1)}
     .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:.15em;color:var(--white);display:flex;align-items:center;gap:.75rem}
@@ -53,9 +66,9 @@
     .step{flex:1;height:2px;background:rgba(200,169,126,0.15);transition:background 0.3s}
     .step.active{background:var(--gold)}
     .empty-slots{color:var(--gray);font-size:0.82rem;padding:1rem 0;text-align:center}
-    @media(max-width:1024px){.nav{padding:1.25rem 2rem}}
-    @media(max-width:768px){.nav-cta{display:none}}
-    @media(max-width:640px){.form-row{grid-template-columns:1fr}.wrap{padding:6rem 1.25rem 3rem}}
+    @media(max-width:1024px){.nav{padding:1.25rem 2rem}.wrap{padding:6rem 3rem 4rem;grid-template-columns:1fr 300px;gap:3rem}}
+    @media(max-width:768px){.nav-cta{display:none}.wrap{grid-template-columns:1fr;padding:5rem 1.5rem 3rem;gap:2rem}.wrap-info{position:relative;top:auto}}
+    @media(max-width:480px){.wrap{padding:5rem 1.25rem 3rem}}
   </style>
 </head>
 <body>
@@ -65,101 +78,144 @@
   </nav>
 
   <div class="wrap">
-    <div class="section-tag">
-      <span class="section-tag-line"></span>
-      <span class="section-tag-text">Agendamento</span>
-    </div>
-    <h1>AGENDAR <span class="italic">Horario</span></h1>
-    <p class="subtitle">Selecione o profissional, servico, data e horario para o seu atendimento em {{ barbearia.name }}.</p>
+    <div class="wrap-inner">
+      <div class="section-tag">
+        <span class="section-tag-line"></span>
+        <span class="section-tag-text">Agendamento</span>
+      </div>
+      <h1>AGENDAR <span class="italic">Horario</span></h1>
+      <p class="subtitle">Selecione o profissional, servico, data e horario para o seu atendimento em {{ barbearia.name }}.</p>
 
-    <div class="step-indicator">
-      <div class="step active" id="step1"></div>
-      <div class="step" id="step2"></div>
-      <div class="step" id="step3"></div>
-    </div>
-
-    {% if errors %}
-    <div class="errors">
-      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
-    </div>
-    {% endif %}
-
-    <form method="post" action="{% url 'publico:agendar' barbearia.slug %}" id="bookingForm">
-      {% csrf_token %}
-
-      <div class="form-group">
-        <label for="professional">Profissional</label>
-        <select name="professional" id="professional" onchange="onProfChange()">
-          <option value="">Selecione...</option>
-          {% for p in profissionais %}
-          <option value="{{ p.pk }}" {% if selected_prof and selected_prof.pk == p.pk %}selected{% endif %}>{{ p }}</option>
-          {% endfor %}
-        </select>
+      <div class="step-indicator">
+        <div class="step active" id="step1"></div>
+        <div class="step" id="step2"></div>
+        <div class="step" id="step3"></div>
       </div>
 
-      <div class="form-group">
-        <label for="service">Servico</label>
-        <select name="service" id="service" onchange="resetSlots()">
-          <option value="">Selecione...</option>
-          {% for s in servicos %}
-          <option value="{{ s.pk }}" data-dur="{{ s.duration_minutes }}" {% if selected_svc and selected_svc.pk == s.pk %}selected{% endif %}>{{ s.name }} ({{ s.duration_minutes }} min)</option>
-          {% endfor %}
-        </select>
+      {% if errors %}
+      <div class="errors">
+        {% for e in errors %}<li>{{ e }}</li>{% endfor %}
       </div>
+      {% endif %}
 
-      <div class="form-row">
+      <form method="post" action="{% url 'publico:agendar' barbearia.slug %}" id="bookingForm">
+        {% csrf_token %}
+
         <div class="form-group">
-          <label for="date">Data</label>
-          <input type="date" name="date" id="date" value="{{ date_str }}" min="">
+          <label for="professional">Profissional</label>
+          <select name="professional" id="professional" onchange="onProfChange()">
+            <option value="">Selecione...</option>
+            {% for p in profissionais %}
+            <option value="{{ p.pk }}" {% if selected_prof and selected_prof.pk == p.pk %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
         </div>
+
         <div class="form-group">
-          <label>&nbsp;</label>
-          <button type="button" class="btn-submit btn-fetch" onclick="fetchSlots()">
-            <span>Buscar Horarios</span>
-            <span class="iconify" data-icon="solar:calendar-search-linear"></span>
-          </button>
+          <label for="service">Servico</label>
+          <select name="service" id="service" onchange="resetSlots()">
+            <option value="">Selecione...</option>
+            {% for s in servicos %}
+            <option value="{{ s.pk }}" data-dur="{{ s.duration_minutes }}" {% if selected_svc and selected_svc.pk == s.pk %}selected{% endif %}>{{ s.name }} ({{ s.duration_minutes }} min)</option>
+            {% endfor %}
+          </select>
         </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date">Data</label>
+            <input type="date" name="date" id="date" value="{{ date_str }}" min="">
+          </div>
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="button" class="btn-submit btn-fetch" onclick="fetchSlots()">
+              <span>Buscar Horarios</span>
+              <span class="iconify" data-icon="solar:calendar-search-linear"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group" id="slotsSection" style="{% if not has_searched %}display:none{% endif %}">
+          <label>Horarios disponiveis</label>
+          {% if has_searched and available_slots %}
+          <div class="slots-grid">
+            {% for slot in available_slots %}
+            <button type="button" class="slot-btn" data-time="{{ slot|time:'H:i' }}" onclick="selectSlot(this)">{{ slot|time:'H:i' }}</button>
+            {% endfor %}
+          </div>
+          {% elif has_searched %}
+          <p class="empty-slots">Profissional sem disponibilidade nessa data!</p>
+          {% else %}
+          <p class="empty-slots">Clique em &quot;Buscar Horarios&quot; apos selecionar os dados acima.</p>
+          {% endif %}
+        </div>
+
+        <div id="clientSection" style="{% if not selected_prof or not selected_svc or not selected_date %}{% if not form_data.start_time %}display:none{% endif %}{% endif %}">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="client_name">Nome</label>
+              <input type="text" name="client_name" id="client_name" value="{{ form_data.client_name|default:'' }}" placeholder="Seu nome" required>
+            </div>
+            <div class="form-group">
+              <label for="client_phone">WhatsApp</label>
+              <input type="tel" name="client_phone" id="client_phone" value="{{ form_data.client_phone|default:'' }}" placeholder="(83) 98888-7777" pattern="[\d\s\(\)\-]{10,}" title="Informe DDD + 9 + numero (ex: 11999999999)" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="client_email">E-mail (opcional)</label>
+            <input type="email" name="client_email" id="client_email" value="{{ form_data.client_email|default:'' }}" placeholder="voce@email.com">
+          </div>
+        </div>
+
+        <input type="hidden" name="start_time" id="start_time" value="{{ form_data.start_time|default:'' }}">
+
+        <button type="submit" class="btn-submit" id="submitBtn" {% if not form_data.start_time %}disabled{% endif %}>
+          <span>Confirmar Agendamento</span>
+          <span class="iconify" data-icon="solar:arrow-right-linear"></span>
+        </button>
+      </form>
+    </div>
+
+    <aside class="wrap-info">
+      <div class="wrap-info-title">Informações</div>
+
+      <div class="wrap-info-item">
+        <span class="iconify" data-icon="solar:phone-bold"></span>
+        <p>{{ barbearia.phone|default:"—" }}</p>
       </div>
 
-      <div class="form-group" id="slotsSection" style="{% if not has_searched %}display:none{% endif %}">
-        <label>Horarios disponiveis</label>
-        {% if has_searched and available_slots %}
-        <div class="slots-grid">
-          {% for slot in available_slots %}
-          <button type="button" class="slot-btn" data-time="{{ slot|time:'H:i' }}" onclick="selectSlot(this)">{{ slot|time:'H:i' }}</button>
-          {% endfor %}
-        </div>
-        {% elif has_searched %}
-        <p class="empty-slots">Profissional sem disponibilidade nessa data!</p>
+      {% if barbearia.whatsapp %}
+      <div class="wrap-info-item">
+        <span class="iconify" data-icon="solar:chat-round-dots-bold"></span>
+        <p>{{ barbearia.whatsapp }}</p>
+      </div>
+      {% endif %}
+
+      <div class="wrap-info-item">
+        <span class="iconify" data-icon="solar:map-point-bold"></span>
+        {% if barbearia.address %}
+        <a href="https://www.google.com/maps/dir/?api=1&destination={{ barbearia.address|urlencode }}" target="_blank" rel="noopener" class="wrap-info-link">{{ barbearia.address }}</a>
         {% else %}
-        <p class="empty-slots">Clique em &quot;Buscar Horarios&quot; apos selecionar os dados acima.</p>
+        <p>—</p>
         {% endif %}
       </div>
 
-      <div id="clientSection" style="{% if not selected_prof or not selected_svc or not selected_date %}{% if not form_data.start_time %}display:none{% endif %}{% endif %}">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="client_name">Nome</label>
-            <input type="text" name="client_name" id="client_name" value="{{ form_data.client_name|default:'' }}" placeholder="Seu nome" required>
-          </div>
-          <div class="form-group">
-            <label for="client_phone">WhatsApp</label>
-            <input type="tel" name="client_phone" id="client_phone" value="{{ form_data.client_phone|default:'' }}" placeholder="(83) 98888-7777" pattern="[\d\s\(\)\-]{10,}" title="Informe DDD + 9 + numero (ex: 11999999999)" required>
-          </div>
+      {% if horarios %}
+      <div class="wrap-info-title" style="margin-top:2rem">Horários</div>
+      <div class="wrap-info-hours">
+        {% for h in horarios %}
+        <div class="wrap-info-hours-row{% if h.weekday == today_weekday %} today{% endif %}">
+          <span class="day">{{ h.get_weekday_display }}</span>
+          {% if h.is_open %}
+          <span class="time">{{ h.open_time|time:"H:i" }}–{{ h.close_time|time:"H:i" }}</span>
+          {% else %}
+          <span class="time" style="color:var(--gray)">fechado</span>
+          {% endif %}
         </div>
-        <div class="form-group">
-          <label for="client_email">E-mail (opcional)</label>
-          <input type="email" name="client_email" id="client_email" value="{{ form_data.client_email|default:'' }}" placeholder="voce@email.com">
-        </div>
+        {% endfor %}
       </div>
-
-      <input type="hidden" name="start_time" id="start_time" value="{{ form_data.start_time|default:'' }}">
-
-      <button type="submit" class="btn-submit" id="submitBtn" {% if not form_data.start_time %}disabled{% endif %}>
-        <span>Confirmar Agendamento</span>
-        <span class="iconify" data-icon="solar:arrow-right-linear"></span>
-      </button>
-    </form>
+      {% endif %}
+    </aside>
   </div>
 
   <script>
