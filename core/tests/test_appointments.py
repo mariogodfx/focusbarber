@@ -116,7 +116,7 @@ class AppointmentConflictTests(AppointmentBaseTestCase):
     def test_bloqueia_conflito_mesmo_horario(self):
         apt1 = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente A", client_phone="111",
+            client_name="Cliente A",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt1.full_clean()
@@ -124,7 +124,7 @@ class AppointmentConflictTests(AppointmentBaseTestCase):
 
         apt2 = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente B", client_phone="222",
+            client_name="Cliente B",             client_phone="11952222222",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         with self.assertRaises(ValidationError):
@@ -134,7 +134,7 @@ class AppointmentConflictTests(AppointmentBaseTestCase):
         """Agendamento 10:00-10:30 conflita com 10:15-10:45."""
         apt1 = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente A", client_phone="111",
+            client_name="Cliente A",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt1.full_clean()
@@ -148,7 +148,7 @@ class AppointmentConflictTests(AppointmentBaseTestCase):
         )
         apt2 = Appointment(
             tenant=self.tenant, professional=self.prof, service=svc60,
-            client_name="Cliente B", client_phone="222",
+            client_name="Cliente B",             client_phone="11952222222",
             date=self.tomorrow, start_time=dt.time(10, 15),
         )
         with self.assertRaises(ValidationError):
@@ -157,7 +157,7 @@ class AppointmentConflictTests(AppointmentBaseTestCase):
     def test_cancelamento_libera_slot(self):
         apt1 = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente A", client_phone="111",
+            client_name="Cliente A",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt1.full_clean()
@@ -167,7 +167,7 @@ class AppointmentConflictTests(AppointmentBaseTestCase):
 
         apt2 = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente B", client_phone="222",
+            client_name="Cliente B",             client_phone="11952222222",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt2.full_clean()
@@ -181,7 +181,7 @@ class AppointmentValidationTests(AppointmentBaseTestCase):
     def test_bloqueia_fora_expediente_barbearia(self):
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente", client_phone="111",
+            client_name="Cliente",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(7, 0),
         )
         with self.assertRaises(ValidationError):
@@ -212,7 +212,7 @@ class AppointmentValidationTests(AppointmentBaseTestCase):
 
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente", client_phone="111",
+            client_name="Cliente",             client_phone="11951111111",
             date=other_date, start_time=dt.time(10, 0),
         )
         with self.assertRaises(ValidationError):
@@ -224,7 +224,7 @@ class AppointmentValidationTests(AppointmentBaseTestCase):
         )
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=svc2,
-            client_name="Cliente", client_phone="111",
+            client_name="Cliente",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         with self.assertRaises(ValidationError):
@@ -234,18 +234,51 @@ class AppointmentValidationTests(AppointmentBaseTestCase):
         yesterday = dt.date.today() - dt.timedelta(days=1)
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente", client_phone="111",
+            client_name="Cliente",             client_phone="11951111111",
             date=yesterday, start_time=dt.time(10, 0),
         )
         with self.assertRaises(ValidationError):
             apt.full_clean()
+
+    def test_bloqueia_telefone_sem_nove_terceiro_digito_model(self):
+        """3o digito != 9 rejeitado pelo model."""
+        apt = Appointment(
+            tenant=self.tenant, professional=self.prof, service=self.svc,
+            client_name="Cliente", client_phone="83557785588",
+            date=self.tomorrow, start_time=dt.time(10, 0),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            apt.full_clean()
+        self.assertIn("WhatsApp invalido", str(ctx.exception))
+
+    def test_bloqueia_telefone_ddd_invalido_model(self):
+        """DDD inexistente rejeitado pelo model."""
+        apt = Appointment(
+            tenant=self.tenant, professional=self.prof, service=self.svc,
+            client_name="Cliente", client_phone="10999999999",
+            date=self.tomorrow, start_time=dt.time(10, 0),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            apt.full_clean()
+        self.assertIn("WhatsApp invalido", str(ctx.exception))
+
+    def test_bloqueia_telefone_quarto_digito_invalido_model(self):
+        """4o digito fora de [5-9] rejeitado pelo model."""
+        apt = Appointment(
+            tenant=self.tenant, professional=self.prof, service=self.svc,
+            client_name="Cliente", client_phone="83941111111",
+            date=self.tomorrow, start_time=dt.time(10, 0),
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            apt.full_clean()
+        self.assertIn("WhatsApp invalido", str(ctx.exception))
 
     def test_bloqueia_profissional_inativo(self):
         self.prof.is_active = False
         self.prof.save(update_fields=["is_active"])
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente", client_phone="111",
+            client_name="Cliente",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         with self.assertRaises(ValidationError):
@@ -286,7 +319,7 @@ class AppointmentMultiTenantTests(AppointmentBaseTestCase):
 
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente", client_phone="111",
+            client_name="Cliente",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt.full_clean()
@@ -295,7 +328,7 @@ class AppointmentMultiTenantTests(AppointmentBaseTestCase):
         set_current_tenant(self.tenant2, bypass=False, user=None)
         apt_t2 = Appointment(
             tenant=self.tenant2, professional=prof2, service=svc2,
-            client_name="Cliente T2", client_phone="222",
+            client_name="Cliente T2",             client_phone="11952222222",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt_t2.full_clean()
@@ -359,7 +392,7 @@ class AgendamentoPublicoTests(AppointmentBaseTestCase):
     def test_post_conflito_retorna_erro(self):
         apt1 = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente A", client_phone="111",
+            client_name="Cliente A",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt1.full_clean()
@@ -383,6 +416,82 @@ class AgendamentoPublicoTests(AppointmentBaseTestCase):
             ).exists()
         )
 
+    def test_post_rejeita_telefone_vazio(self):
+        """Telefone vazio -> erro."""
+        resp = self.client.post(
+            reverse("publico:agendar", args=[self.tenant.slug]),
+            data={
+                "professional": str(self.prof.pk),
+                "service": str(self.svc.pk),
+                "date": self.tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "11:00",
+                "client_name": "Cliente",
+                "client_phone": "",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "obrigatorios")
+
+    def test_post_rejeita_telefone_sem_nove_terceiro_digito(self):
+        """3o digito diferente de 9 -> erro."""
+        resp = self.client.post(
+            reverse("publico:agendar", args=[self.tenant.slug]),
+            data={
+                "professional": str(self.prof.pk),
+                "service": str(self.svc.pk),
+                "date": self.tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "11:00",
+                "client_name": "Cliente",
+                "client_phone": "83557785588",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "WhatsApp invalido")
+
+    def test_post_rejeita_telefone_ddd_invalido(self):
+        """DDD inexistente -> erro."""
+        resp = self.client.post(
+            reverse("publico:agendar", args=[self.tenant.slug]),
+            data={
+                "professional": str(self.prof.pk),
+                "service": str(self.svc.pk),
+                "date": self.tomorrow.strftime("%Y-%m-%d"),
+                "start_time": "11:00",
+                "client_name": "Cliente",
+                "client_phone": "10999999999",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "WhatsApp invalido")
+
+    def test_get_slots_sem_disponibilidade(self):
+        """Nenhum slot disponivel -> mensagem especifica."""
+        wd = (_weekday_num(self.tomorrow) + 1) % 7
+        if wd == 0:
+            wd = 1
+        other_date = self.tomorrow + dt.timedelta(days=1)
+        while _weekday_num(other_date) != wd:
+            other_date += dt.timedelta(days=1)
+
+        bh_other = BusinessHours.objects.bypass_tenant().get(
+            tenant=self.tenant, weekday=_weekday_num(other_date),
+        )
+        bh_other.is_open = True
+        bh_other.open_time = dt.time(8, 0)
+        bh_other.close_time = dt.time(18, 0)
+        bh_other.save()
+
+        resp = self.client.get(
+            reverse("publico:agendar", args=[self.tenant.slug]),
+            data={
+                "professional": str(self.prof.pk),
+                "service": str(self.svc.pk),
+                "date": other_date.strftime("%Y-%m-%d"),
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Profissional sem disponibilidade nessa data!")
+
     def test_get_slots_disponiveis(self):
         resp = self.client.get(
             reverse("publico:agendar", args=[self.tenant.slug]),
@@ -399,7 +508,7 @@ class AgendamentoPublicoTests(AppointmentBaseTestCase):
     def test_get_slots_exclui_ocupados(self):
         apt = Appointment(
             tenant=self.tenant, professional=self.prof, service=self.svc,
-            client_name="Cliente A", client_phone="111",
+            client_name="Cliente A",             client_phone="11951111111",
             date=self.tomorrow, start_time=dt.time(10, 0),
         )
         apt.full_clean()

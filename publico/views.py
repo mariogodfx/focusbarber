@@ -19,6 +19,7 @@ from core.models import (
     Service,
     Tenant,
     set_current_tenant,
+    validate_br_phone,
 )
 
 
@@ -141,8 +142,9 @@ class AgendamentoView(View):
             except ValueError:
                 selected_date = None
 
+        has_searched = bool(selected_prof and selected_svc and selected_date)
         available_slots = []
-        if selected_prof and selected_svc and selected_date:
+        if has_searched:
             available_slots = _get_available_slots(
                 barbearia, selected_prof, selected_date,
                 selected_svc.duration_minutes,
@@ -168,6 +170,8 @@ class AgendamentoView(View):
             "selected_date": selected_date,
             "date_str": date_str or "",
             "available_slots": available_slots,
+            "has_searched": has_searched,
+            "form_data": {},
         }
         return render(request, self.template_name, ctx)
 
@@ -186,6 +190,8 @@ class AgendamentoView(View):
 
         if not all([prof_id, svc_id, date_str, start_time_str, client_name, client_phone]):
             errors.append("Todos os campos sao obrigatorios (exceto e-mail).")
+        elif not validate_br_phone(client_phone):
+            errors.append("WhatsApp invalido. Informe DDD + 9 + numero (ex: 11999999999).")
 
         prof = None
         svc = None
@@ -256,8 +262,9 @@ class AgendamentoView(View):
             .filter(tenant=barbearia, is_active=True)
         )
 
+        has_searched = bool(prof and svc and apt_date)
         available_slots = []
-        if prof and svc and apt_date:
+        if has_searched:
             available_slots = _get_available_slots(
                 barbearia, prof, apt_date, svc.duration_minutes,
             )
@@ -271,11 +278,13 @@ class AgendamentoView(View):
             "selected_date": apt_date,
             "date_str": date_str or "",
             "available_slots": available_slots,
+            "has_searched": has_searched,
             "errors": errors,
             "form_data": {
                 "client_name": client_name,
                 "client_phone": client_phone,
                 "client_email": client_email,
+                "start_time": start_time_str or "",
             },
         }
         return render(request, self.template_name, ctx)

@@ -10,15 +10,20 @@
   <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
   <style>
     *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-    :root{--gold:#C8A97E;--gold-dark:#A8885E;--black:#0A0A0A;--black-light:#141414;--black-medium:#1A1A1A;--white:#FAFAF9;--gray:#6B6B6B;--gray-light:#999999;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',sans-serif;--display:'Bebas Neue',Impact,sans-serif;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)}
+    :root{--gold:#C8A97E;--gold-dark:#A8885E;--black:#0A0A0A;--black-light:#141414;--black-medium:#1A1A1A;--white:#FAFAF9;--gray:#6B6B6B;--gray-light:#999999;--serif:'Playfair Display',Georgia,serif;--sans:'Inter',sans-serif;--display:'Bebas Neue',Impact,sans-serif;--ease-out-expo:cubic-bezier(0.16,1,0.3,1);--ease-out-quart:cubic-bezier(0.25,1,0.5,1)}
+    html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--gold) var(--black)}
     body{font-family:var(--sans);background:var(--black);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100vh}
     a{text-decoration:none;color:inherit}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:var(--black)}
+    ::-webkit-scrollbar-thumb{background:var(--gold);border-radius:3px}
     .wrap{max-width:640px;margin:0 auto;padding:7rem 1.5rem 4rem}
-    .nav{position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(10,10,10,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,169,126,0.1)}
-    .nav-logo{font-family:var(--display);font-size:1.5rem;letter-spacing:0.15em;color:var(--white)}
-    .nav-logo .amp{color:var(--gold);font-family:var(--serif);font-style:italic}
-    .nav-back{font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);padding:0.6rem 1.2rem;transition:all 0.3s}
-    .nav-back:hover{background:var(--gold);color:var(--black)}
+    .nav{position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.5rem 3rem;display:flex;align-items:center;justify-content:space-between;transition:all .4s var(--ease-out-quart)}
+    .nav.scrolled{padding:1rem 3rem;background:rgba(10,10,10,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,169,126,.1)}
+    .nav-logo{font-family:var(--display);font-size:1.8rem;letter-spacing:.15em;color:var(--white);display:flex;align-items:center;gap:.75rem}
+    .nav-logo .amp{color:var(--gold);font-family:var(--serif);font-style:italic;font-size:1.4rem}
+    .nav-cta{font-size:.7rem;letter-spacing:.25em;text-transform:uppercase;padding:.75rem 1.75rem;border:1px solid var(--gold);color:var(--gold);transition:all .4s ease}
+    .nav-cta:hover{background:var(--gold);color:var(--black)}
     .section-tag{display:inline-flex;align-items:center;gap:1rem;margin-bottom:1rem}
     .section-tag-line{width:30px;height:1px;background:var(--gold)}
     .section-tag-text{font-size:0.65rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold)}
@@ -48,13 +53,15 @@
     .step{flex:1;height:2px;background:rgba(200,169,126,0.15);transition:background 0.3s}
     .step.active{background:var(--gold)}
     .empty-slots{color:var(--gray);font-size:0.82rem;padding:1rem 0;text-align:center}
+    @media(max-width:1024px){.nav{padding:1.25rem 2rem}}
+    @media(max-width:768px){.nav-cta{display:none}}
     @media(max-width:640px){.form-row{grid-template-columns:1fr}.wrap{padding:6rem 1.25rem 3rem}}
   </style>
 </head>
 <body>
   <nav class="nav">
     <a href="{% url 'publico:barbearia' barbearia.slug %}" class="nav-logo">{{ barbearia.name|upper }}</a>
-    <a href="{% url 'publico:barbearia' barbearia.slug %}" class="nav-back">Voltar</a>
+    <a href="{% url 'publico:barbearia' barbearia.slug %}" class="nav-cta">Voltar</a>
   </nav>
 
   <div class="wrap">
@@ -114,28 +121,30 @@
         </div>
       </div>
 
-      <div class="form-group" id="slotsSection" style="{% if not available_slots %}display:none{% endif %}">
+      <div class="form-group" id="slotsSection" style="{% if not has_searched %}display:none{% endif %}">
         <label>Horarios disponiveis</label>
-        {% if available_slots %}
+        {% if has_searched and available_slots %}
         <div class="slots-grid">
           {% for slot in available_slots %}
           <button type="button" class="slot-btn" data-time="{{ slot|time:'H:i' }}" onclick="selectSlot(this)">{{ slot|time:'H:i' }}</button>
           {% endfor %}
         </div>
+        {% elif has_searched %}
+        <p class="empty-slots">Profissional sem disponibilidade nessa data!</p>
         {% else %}
-        <p class="empty-slots">Clique em "Buscar Horarios" apos selecionar os dados acima.</p>
+        <p class="empty-slots">Clique em &quot;Buscar Horarios&quot; apos selecionar os dados acima.</p>
         {% endif %}
       </div>
 
-      <div id="clientSection" style="{% if not selected_prof or not selected_svc or not selected_date %}display:none{% endif %}">
+      <div id="clientSection" style="{% if not selected_prof or not selected_svc or not selected_date %}{% if not form_data.start_time %}display:none{% endif %}{% endif %}">
         <div class="form-row">
           <div class="form-group">
             <label for="client_name">Nome</label>
             <input type="text" name="client_name" id="client_name" value="{{ form_data.client_name|default:'' }}" placeholder="Seu nome" required>
           </div>
           <div class="form-group">
-            <label for="client_phone">Telefone</label>
-            <input type="tel" name="client_phone" id="client_phone" value="{{ form_data.client_phone|default:'' }}" placeholder="(11) 99999-9999" required>
+            <label for="client_phone">WhatsApp</label>
+            <input type="tel" name="client_phone" id="client_phone" value="{{ form_data.client_phone|default:'' }}" placeholder="(83) 98888-7777" pattern="[\d\s\(\)\-]{10,}" title="Informe DDD + 9 + numero (ex: 11999999999)" required>
           </div>
         </div>
         <div class="form-group">
@@ -144,9 +153,9 @@
         </div>
       </div>
 
-      <input type="hidden" name="start_time" id="start_time" value="">
+      <input type="hidden" name="start_time" id="start_time" value="{{ form_data.start_time|default:'' }}">
 
-      <button type="submit" class="btn-submit" id="submitBtn" disabled>
+      <button type="submit" class="btn-submit" id="submitBtn" {% if not form_data.start_time %}disabled{% endif %}>
         <span>Confirmar Agendamento</span>
         <span class="iconify" data-icon="solar:arrow-right-linear"></span>
       </button>
@@ -230,6 +239,11 @@
       var submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = false;
     }
+
+    // Nav scroll state (design-system spec).
+    const nav = document.querySelector('.nav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
 
     var today = new Date().toISOString().split('T')[0];
     document.getElementById('date').min = today;

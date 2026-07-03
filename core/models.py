@@ -17,6 +17,7 @@ Regras PRD:
   - §16:  "QuerySet global filtrado", "Proteção contra cross-tenant access".
 """
 import os
+import re
 import uuid
 from datetime import time as _time
 
@@ -652,6 +653,33 @@ def _intervals_overlap(a_start, a_end, b_start, b_end):
     return a_start < b_end and b_start < a_end
 
 
+DDDS_VALIDOS = {
+    "61", "62", "64", "65", "66", "67",
+    "81", "82", "83", "84", "85", "86", "87", "88", "89",
+    "71", "73", "74", "75", "77",
+    "63", "68", "69", "91", "92", "93", "94", "95", "96", "97", "98", "99",
+    "11", "12", "13", "14", "15", "16", "17", "18", "19",
+    "21", "22", "24", "27", "28",
+    "31", "32", "33", "34", "35", "37", "38",
+    "41", "42", "43", "44", "45", "46", "47", "48", "49",
+    "51", "53", "54", "55",
+}
+
+
+def validate_br_phone(phone):
+    """Valida celular BR: 11 digitos, DDD real, 3o digito=9, 4o digito em [5-9]."""
+    if not phone or not phone.strip():
+        return False
+    digits = re.sub(r"\D", "", phone)
+    if len(digits) != 11:
+        return False
+    if digits[2] != "9":
+        return False
+    if digits[3] not in "56789":
+        return False
+    return digits[:2] in DDDS_VALIDOS
+
+
 def _availability_working_intervals(availability):
     if not availability.available:
         return []
@@ -959,6 +987,8 @@ class Appointment(TenantOwnedModel):
             errors["client_name"] = _("Nome do cliente e obrigatorio.")
         if not self.client_phone or not self.client_phone.strip():
             errors["client_phone"] = _("Telefone e obrigatorio.")
+        elif not validate_br_phone(self.client_phone):
+            errors["client_phone"] = _("WhatsApp invalido. Informe DDD + 9 + numero (ex: 11999999999).")
         if not self.date:
             errors["date"] = _("Data e obrigatoria.")
         if not self.start_time:
