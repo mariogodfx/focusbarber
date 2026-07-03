@@ -41,6 +41,7 @@ def _professional_dashboard_context(user):
         Professional.objects.bypass_tenant()
         .filter(user=user)
         .select_related("tenant")
+        .prefetch_related("services")
         .order_by("tenant__name")
     )
     return {

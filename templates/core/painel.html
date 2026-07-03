@@ -16,19 +16,31 @@
       --red: #E8A09A; --green: #A0D0A0;
     }
     * { margin:0; padding:0; box-sizing:border-box; }
+    html { scrollbar-width:thin; scrollbar-color:var(--gold) var(--black); }
+    ::-webkit-scrollbar { width:6px; }
+    ::-webkit-scrollbar-track { background:var(--black); }
+    ::-webkit-scrollbar-thumb { background:var(--gold); border-radius:3px; }
     body {
       font-family: 'Inter', -apple-system, sans-serif;
       background: var(--black); color: var(--white);
-      min-height: 100vh; padding: 2rem 1rem;
+      min-height: 100vh;
     }
-    .wrap { max-width: 860px; margin: 0 auto; }
+    .wrap { padding: 7rem 5rem 4rem; }
 
     /* Nav */
     .nav {
+      position:fixed; top:0; left:0; width:100%; z-index:1000;
       display:flex; align-items:center; justify-content:space-between;
-      margin-bottom: 2rem; padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(200,169,126,0.15);
+      padding:1.5rem 5rem;
     }
+    .nav::before {
+      content:''; position:absolute; inset:0;
+      background:rgba(10,10,10,.95);
+      backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(200,169,126,.1);
+      opacity:0; transition:opacity .4s ease; z-index:-1;
+    }
+    .nav.scrolled::before { opacity:1; }
     .nav .brand { font-size:1.3rem; letter-spacing:.15em; }
     .nav .brand .amp { color: var(--gold); }
     .nav .links { display:flex; gap:1.2rem; align-items:center; }
@@ -62,6 +74,7 @@
       display:flex; justify-content:space-between; align-items:center;
       margin-bottom: .6rem;
     }
+    .card .header > div { display:flex; align-items:center; gap:5px; }
     .card .tenant-name { font-size:1rem; font-weight:600; }
     .card .meta { font-size:.78rem; color: var(--gray-light); }
     .card .actions { display:flex; gap:.5rem; margin-top:.8rem; flex-wrap:wrap; }
@@ -83,7 +96,7 @@
       text-transform:uppercase; font-weight:600; border:none;
       transition: background .3s, opacity .3s;
     }
-    .btn-accept { background: var(--green); color: var(--black); }
+    .btn-accept { background: var(--green); color: var(--black); border:1px solid transparent; }
     .btn-reject { background: rgba(232,160,154,0.2); color: var(--red); border:1px solid var(--red); }
     .btn-cancel { background: transparent; color: var(--gray-light); border:1px solid var(--gray); }
     .btn-admin { background: var(--gold); color: var(--black); }
@@ -101,23 +114,31 @@
     .barber-card .role { font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color: var(--gold); }
     .barber-card .status { font-size:.72rem; color: var(--gray-light); }
 
+    /* Service tags */
+    .services-list { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.3rem; }
+    .service-tag {
+      display:inline-block; padding:.25rem .65rem; font-size:.72rem;
+      letter-spacing:.08em; font-weight:500;
+      background: rgba(200,169,126,0.1); color: var(--gold-light);
+      border: 1px solid rgba(200,169,126,0.2);
+    }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; margin-top:43px; }
     .empty { color: var(--gray); font-size:.85rem; padding:1rem 0; text-align:center; }
   </style>
 </head>
 <body>
+  <nav class="nav">
+    <div class="brand">B<span class="amp">&amp;</span>C <small style="font-size:.65rem;color:var(--gray-light);letter-spacing:.2em">FOCUSBARBER</small></div>
+    <div class="links">
+      <span class="user-email">{{ user.email }}</span>
+      <a href="{% url 'base:profile' %}">Perfil</a>
+      {% if user.is_staff %}<a href="/admin/">Admin</a>{% endif %}
+      <form method="post" action="{% url 'base:logout' %}" style="display:inline">{% csrf_token %}
+        <button type="submit" style="background:none;border:none;color:var(--gray-light);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Sair</button>
+      </form>
+    </div>
+  </nav>
   <div class="wrap">
-    <!-- Nav -->
-    <nav class="nav">
-      <div class="brand">B<span class="amp">&amp;</span>C <small style="font-size:.65rem;color:var(--gray-light);letter-spacing:.2em">FOCUSBARBER</small></div>
-      <div class="links">
-        <span class="user-email">{{ user.email }}</span>
-        <a href="{% url 'base:profile' %}">Perfil</a>
-        {% if user.is_staff %}<a href="/admin/">Admin</a>{% endif %}
-        <form method="post" action="{% url 'base:logout' %}" style="display:inline">{% csrf_token %}
-          <button type="submit" style="background:none;border:none;color:var(--gray-light);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Sair</button>
-        </form>
-      </div>
-    </nav>
 
     <!-- Messages -->
     {% if messages %}
@@ -162,37 +183,70 @@
       <p class="empty">Nenhum convite recebido.</p>
     {% endif %}
 
-    <!-- Barbearias vinculadas -->
-    <h2>Barbearias vinculadas</h2>
-    {% if memberships %}
-      {% for m in memberships %}
-        <div class="barber-card">
-          <div class="info">
-            <span class="name">{{ m.tenant.name }}</span>
-            <span class="role">{{ m.get_role_display }}</span>
-          </div>
-          <div class="status">Ativo</div>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p class="empty">Nenhuma barbearia vinculada.</p>
-    {% endif %}
+    <div class="grid-2">
+      <div>
+        <h2>Perfis de profissional</h2>
+        {% if professionals %}
+          {% for p in professionals %}
+            <div class="barber-card">
+              <div class="info">
+                <span class="name">{{ p.tenant.name }}</span>
+                <span class="status">{{ p.is_active|yesno:"Ativo,Inativo" }}</span>
+              </div>
+              <a href="{% url 'publico:barbearia' p.tenant.slug %}" class="btn btn-cancel">Ver página</a>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="empty">Nenhum perfil de profissional cadastrado.</p>
+        {% endif %}
+      </div>
+      <div>
+        <h2>Barbearias vinculadas</h2>
+        {% if memberships %}
+          {% for m in memberships %}
+            <div class="barber-card">
+              <div class="info">
+                <span class="name">{{ m.tenant.name }}</span>
+                <span class="role">{{ m.get_role_display }}</span>
+              </div>
+              <div class="status">Ativo</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="empty">Nenhuma barbearia vinculada.</p>
+        {% endif %}
+      </div>
+    </div>
 
-    <!-- Perfis profissionais -->
-    <h2>Perfis de profissional</h2>
+    <!-- Servicos por barbearia -->
+    <h2>Serviços por barbearia</h2>
     {% if professionals %}
       {% for p in professionals %}
-        <div class="barber-card">
-          <div class="info">
-            <span class="name">{{ p.tenant.name }}</span>
-            <span class="status">{{ p.is_active|yesno:"Ativo,Inativo" }}</span>
+        <div class="card">
+          <div class="header">
+            <div>
+              <span class="tenant-name">{{ p.tenant.name }}</span>
+            </div>
           </div>
-          <a href="{% url 'publico:barbearia' p.tenant.slug %}" class="btn btn-cancel">Ver página</a>
+          {% if p.services.all %}
+            <div class="services-list">
+              {% for svc in p.services.all %}
+                <span class="service-tag">{{ svc.name }}</span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty" style="text-align:left;padding:.5rem 0">Nenhum serviço vinculado.</p>
+          {% endif %}
         </div>
       {% endfor %}
     {% else %}
-      <p class="empty">Nenhum perfil de profissional cadastrado.</p>
+      <p class="empty">Nenhum perfil profissional encontrado.</p>
     {% endif %}
   </div>
+  <script>
+    var nav = document.querySelector('.nav');
+    function onScroll() { nav.classList.toggle('scrolled', window.scrollY > 80); }
+    window.addEventListener('scroll', onScroll, { passive: true });
+  </script>
 </body>
 </html>
