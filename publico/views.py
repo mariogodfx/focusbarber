@@ -45,6 +45,11 @@ class BarbeariaPublicaView(DetailView):
             BusinessHours.objects.bypass_tenant().filter(tenant=tenant)
             .order_by("weekday")
         )
+        ctx["profissionais"] = (
+            Professional.objects.bypass_tenant()
+            .filter(tenant=tenant, is_active=True)
+            .select_related("user")
+        )
         return ctx
 
 
