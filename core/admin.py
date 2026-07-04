@@ -8,11 +8,14 @@ from django.utils.http import unquote
 from .models import (
     Appointment,
     BusinessHours,
+    Product,
     Professional,
     ProfessionalAvailability,
     ProfessionalInvitation,
     ProfessionalService,
     Service,
+    Session,
+    SessionProduct,
     Tenant,
     TenantMembership,
     current_tenant,
@@ -775,3 +778,35 @@ class AppointmentAdmin(TenantContextMixin, admin.ModelAdmin):
             messages.success(request, f"{count} agendamento(s) cancelado(s).")
         else:
             messages.warning(request, "Nenhum agendamento ativo selecionado.")
+
+
+# --- Sprint 7: Produtos ---
+
+@admin.register(Product)
+class ProductAdmin(TenantContextMixin, admin.ModelAdmin):
+    list_display = ("name", "price", "category", "is_active")
+    list_filter = ("is_active", "category")
+    search_fields = ("name",)
+
+
+# --- Sprint 7: Sessoes ---
+
+class SessionProductInline(admin.TabularInline):
+    model = SessionProduct
+    extra = 0
+    readonly_fields = ("unit_price",)
+
+
+@admin.register(Session)
+class SessionAdmin(TenantContextMixin, admin.ModelAdmin):
+    list_display = ("client_name", "professional", "status", "total_amount", "started_at")
+    list_filter = ("status",)
+    search_fields = ("client_name", "client_phone")
+    inlines = [SessionProductInline]
+    readonly_fields = ("total_amount",)
+
+
+@admin.register(SessionProduct)
+class SessionProductAdmin(TenantContextMixin, admin.ModelAdmin):
+    list_display = ("session", "product", "quantity", "unit_price", "total_price")
+    search_fields = ("session__client_name", "product__name")

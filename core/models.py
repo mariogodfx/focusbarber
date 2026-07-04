@@ -358,6 +358,7 @@ class Service(TenantOwnedModel):
     duration_minutes = models.PositiveIntegerField(
         _("duração (min)"), choices=DURATION_CHOICES, default=30,
     )
+    price = models.DecimalField(_("preço"), max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(_("ativo"), default=True)
 
     class Meta:
@@ -1087,4 +1088,126 @@ class Appointment(TenantOwnedModel):
     def save(self, *args, **kwargs):
         if self.service_id and self.start_time:
             self.end_time = self._compute_end_time()
+        super().save(*args, **kwargs)
+
+
+class Product(TenantOwnedModel):
+    """Produto fisico vendido durante atendimentos (Sprint 7).
+
+    Itens como pomadas, shampoos, pos-barbeiros, etc.
+    """
+
+    name = models.CharField(_("nome"), max_length=120)
+    price = models.DecimalField(_("preco"), max_digits=10, decimal_places=2)
+    cost = models.DecimalField(_("custo"), max_digits=10, decimal_places=2, blank=True, null=True)
+    category = models.CharField(_("categoria"), max_length=60, blank=True)
+    is_active = models.BooleanField(_("ativo"), default=True)
+
+    class Meta:
+        verbose_name = _("produto")
+        verbose_name_plural = _("produtos")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("tenant", "name"),
+                name="unique_product_name_per_tenant",
+            ),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Session(TenantOwnedModel):
+    """Atendimento/sessao (Sprint 7).
+
+    Fluxo: Agendamento -> Sessao -> Produtos -> Fechamento -> Pagamento.
+    Pode ser iniciado a partir de um Appointment confirmado ou avulso.
+    """
+
+    class Status(models.TextChoices):
+        IN_PROGRESS = "in_progress", _("Em andamento")
+        COMPLETED = "completed", _("Concluido")
+        CANCELLED = "cancelled", _("Cancelado")
+
+    appointment = models.ForeignKey(
+        Appointment,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="sessions",
+        verbose_name=_("agendamento"),
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="sessions",
+        verbose_name=_("serviço"),
+    )
+    service_price = models.DecimalField(
+        _("preço do serviço"), max_digits=10, decimal_places=2,
+        blank=True, null=True,
+    )
+    professional = models.ForeignKey(
+        Professional,
+        on_delete=models.CASCADE,
+        related_name="sessions",
+        verbose_name=_("profissional"),
+    )
+    client_name = models.CharField(_("nome do cliente"), max_length=120)
+    client_phone = models.CharField(_("telefone"), max_length=20, blank=True)
+    status = models.CharField(
+        _("status"), max_length=20, choices=Status.choices, default=Status.IN_PROGRESS,
+    )
+    total_amount = models.DecimalField(
+        _("valor total"), max_digits=10, decimal_places=2, blank=True, null=True,
+    )
+    started_at = models.DateTimeField(_("iniciado em"), auto_now_add=True)
+    closed_at = models.DateTimeField(_("fechado em"), null=True, blank=True)
+    notes = models.TextField(_("observacoes"), blank=True)
+
+    class Meta:
+        verbose_name = _("sessao")
+        verbose_name_plural = _("sessoes")
+        ordering = ("-started_at",)
+
+    def __str__(self):
+        return "{} - {}".format(self.client_name, self.professional)
+
+    @property
+    def is_open(self):
+        return self.status == self.Status.IN_PROGRESS
+
+
+class SessionProduct(TenantOwnedModel):
+    """Produto consumido durante uma sessao (Sprint 7)."""
+
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name=_("sessao"),
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="+",
+        verbose_name=_("produto"),
+    )
+    quantity = models.PositiveIntegerField(_("quantidade"), default=1)
+    unit_price = models.DecimalField(_("preco unitario"), max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = _("item de sessao")
+        verbose_name_plural = _("itens de sessao")
+
+    def __str__(self):
+        return "{} x {}".format(self.quantity, self.product)
+
+    @property
+    def total_price(self):
+        return self.quantity * self.unit_price
+
+    def save(self, *args, **kwargs):
+        if not self.unit_price and self.product_id:
+            self.unit_price = self.product.price
         super().save(*args, **kwargs)

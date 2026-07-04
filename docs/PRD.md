@@ -495,10 +495,10 @@ fluxo completo cliente → agendamento
 
 🧪 SPRINT 7 — SESSÕES
 MANUAL
-iniciar atendimento
-adicionar produtos
-fechar conta
-validar cálculo final
+iniciar atendimento (X)
+adicionar produtos (X)
+fechar conta (X)
+validar cálculo final (X)
 
 🧪 SPRINT 8 — PAGAMENTOS
 MANUAL
