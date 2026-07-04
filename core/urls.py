@@ -15,6 +15,7 @@ from .views import (
     appointment_confirmar,
     convite_aceitar,
     convite_cancelar,
+    convite_enviar,
     convite_rejeitar,
     pagamento_registrar,
     produto_criar,
@@ -31,6 +32,7 @@ app_name = "core"
 
 urlpatterns = [
     path("painel/", PainelProfissionalView.as_view(), name="painel"),
+    path("painel/convite/enviar/", convite_enviar, name="convite_enviar"),
     path("painel/convite/<int:pk>/aceitar/", convite_aceitar, name="convite_aceitar"),
     path("painel/convite/<int:pk>/rejeitar/", convite_rejeitar, name="convite_rejeitar"),
     path("painel/convite/<int:pk>/cancelar/", convite_cancelar, name="convite_cancelar"),

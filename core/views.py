@@ -10,6 +10,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -90,6 +91,50 @@ def _professional_dashboard_context(user):
         .filter(professional__user=user, appointment__isnull=False)
         .values_list("appointment_id", flat=True)
     )
+    pode_convidar = (
+        user.role in ("owner", "manager") or user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+        .exists()
+    )
+    eh_owner = (
+        user.role == "owner"
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=user, role=TenantMembership.Role.OWNER, is_active=True)
+        .exists()
+    )
+    admin_tenants = []
+    sent_invitations = []
+    if user.is_superadmin:
+        from .models import Tenant
+        admin_tenants = Tenant.objects.all().order_by("name")
+        sent_invitations = (
+            ProfessionalInvitation.objects.bypass_tenant()
+            .select_related("tenant", "professional_user", "invited_by")
+            .order_by("-created_at")
+        )
+    elif pode_convidar:
+        admin_memberships = (
+            TenantMembership.objects.bypass_tenant()
+            .filter(user=user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+            .select_related("tenant")
+        )
+        admin_tenants = [m.tenant for m in admin_memberships]
+        admin_tenant_ids = [m.tenant.id for m in admin_memberships]
+        if eh_owner:
+            sent_invitations = (
+                ProfessionalInvitation.objects.bypass_tenant()
+                .filter(tenant_id__in=admin_tenant_ids)
+                .select_related("tenant", "professional_user", "invited_by")
+                .order_by("-created_at")
+            )
+        else:
+            sent_invitations = (
+                ProfessionalInvitation.objects.bypass_tenant()
+                .filter(invited_by=user)
+                .select_related("tenant", "professional_user")
+                .order_by("-created_at")
+            )
     return {
         "invitations": invitations,
         "memberships": memberships,
@@ -99,6 +144,9 @@ def _professional_dashboard_context(user):
         "products_by_tenant": products_by_tenant,
         "session_appointment_ids": session_appointment_ids,
         "products": all_products,
+        "pode_convidar": pode_convidar,
+        "admin_tenants": admin_tenants,
+        "sent_invitations": sent_invitations,
     }
 
 
@@ -111,6 +159,60 @@ class PainelProfissionalView(View):
     def get(self, request):
         ctx = _professional_dashboard_context(request.user)
         return render(request, self.template_name, ctx)
+
+
+@login_required
+def convite_enviar(request):
+    """Owner/manager envia convite para um profissional se juntar a barbearia."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    email = request.POST.get("email", "").strip()
+    tenant_id = request.POST.get("tenant_id", "").strip()
+    if not email or not tenant_id:
+        messages.error(request, "E-mail e barbearia sao obrigatorios.")
+        return redirect("core:painel")
+    try:
+        tenant_id = int(tenant_id)
+    except (ValueError, TypeError):
+        messages.error(request, "Barbearia invalida.")
+        return redirect("core:painel")
+    pode_convidar = (
+        request.user.is_superadmin
+        or request.user.role in ("owner", "manager")
+        or TenantMembership.objects.bypass_tenant()
+        .filter(
+            user=request.user, tenant_id=tenant_id,
+            role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+            is_active=True,
+        )
+        .exists()
+    )
+    if not pode_convidar:
+        messages.error(request, "Voce nao tem permissao para convidar nesta barbearia.")
+        return redirect("core:painel")
+    User = get_user_model()
+    try:
+        target = User.objects.get(email=email)
+    except User.DoesNotExist:
+        messages.error(request, "Nenhum usuario encontrado com este e-mail.")
+        return redirect("core:painel")
+    if ProfessionalInvitation.objects.bypass_tenant().filter(
+        tenant_id=tenant_id, professional_user=target, status=ProfessionalInvitation.Status.PENDING,
+    ).exists():
+        messages.error(request, "Ja existe um convite pendente para este usuario nesta barbearia.")
+        return redirect("core:painel")
+    if TenantMembership.objects.bypass_tenant().filter(
+        tenant_id=tenant_id, user=target, is_active=True,
+    ).exists():
+        messages.error(request, "Este usuario ja esta vinculado a esta barbearia.")
+        return redirect("core:painel")
+    ProfessionalInvitation.objects.bypass_tenant().create(
+        tenant_id=tenant_id,
+        professional_user=target,
+        invited_by=request.user,
+    )
+    messages.success(request, "Convite enviado para {}!".format(email))
+    return redirect("core:painel")
 
 
 @login_required
@@ -174,7 +276,12 @@ def convite_cancelar(request, pk):
     )
     is_invitee = inv.professional_user_id == request.user.pk
     is_sender = inv.invited_by_id == request.user.pk
-    if not (is_invitee or is_sender or request.user.is_superadmin):
+    is_admin = TenantMembership.objects.bypass_tenant().filter(
+        user=request.user, tenant=inv.tenant,
+        role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+        is_active=True,
+    ).exists()
+    if not (is_invitee or is_sender or is_admin or request.user.is_superadmin):
         raise PermissionDenied("Voce nao tem permissao para cancelar este convite.")
     pt = current_tenant()
     pu = current_user()

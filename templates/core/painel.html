@@ -135,7 +135,7 @@
     .form-inline select:focus, .form-inline input[type=number]:focus { border-color:var(--gold); }
     .form-inline input[type=number] { width:56px; }
     .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:start; margin-top:43px; }
-    .empty { color: var(--gray); font-size:.85rem; padding:1rem 0; text-align:center; }
+    .empty { color: var(--gray); font-size:.85rem; padding:1rem 1.2rem; text-align:center; background: var(--black-light); border: 1px solid rgba(200,169,126,0.1); margin-bottom:.8rem; }
 
     /* Comanda modal */
     .comanda-overlay {
@@ -184,35 +184,107 @@
     {% endif %}
 
     <!-- Convites -->
-    <h2>Convites recebidos</h2>
-    {% if invitations %}
-      {% for inv in invitations %}
-        <div class="card">
-          <div class="header">
-            <span class="tenant-name">{{ inv.tenant.name }}</span>
-            <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
-          </div>
-          <div class="meta">
-            Convidado por {{ inv.invited_by.email }} em {{ inv.created_at|date:"d/m/Y" }}
-            {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
-          </div>
-          {% if inv.status == "pending" %}
-            <div class="actions">
-              <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
-                <button type="submit" class="btn btn-accept">Aceitar</button>
-              </form>
-              <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
-                <button type="submit" class="btn btn-reject">Rejeitar</button>
-              </form>
-              <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
-                <button type="submit" class="btn btn-cancel">Cancelar</button>
-              </form>
+    {% if pode_convidar %}
+      <h2>Convites enviados</h2>
+      {% if sent_invitations %}
+        {% for inv in sent_invitations %}
+          <div class="card">
+            <div class="header">
+              <span class="tenant-name">{{ inv.tenant.name }}</span>
+              <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
             </div>
-          {% endif %}
-        </div>
-      {% endfor %}
+            <div class="meta">
+              {% if inv.invited_by != user %}Convidado por {{ inv.invited_by.email }} · {% endif %}Para {{ inv.professional_user.email }} · {{ inv.created_at|date:"d/m/Y" }}
+              {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
+            </div>
+            {% if inv.status == "pending" %}
+              <div class="actions">
+                <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-cancel">Cancelar convite</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Nenhum convite enviado.</p>
+      {% endif %}
+
+      <h2>Convidar profissional</h2>
+      <div class="card">
+        <form method="post" action="{% url 'core:convite_enviar' %}" class="form-inline">{% csrf_token %}
+          <input type="email" name="email" placeholder="E-mail do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;min-width:200px">
+          <select name="tenant_id" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box">
+            <option value="">Barbearia</option>
+            {% for m in admin_tenants %}
+              <option value="{{ m.id }}">{{ m.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-accept" style="height:32px;display:inline-flex;align-items:center">Convidar</button>
+        </form>
+      </div>
+
+      <h2>Convites recebidos</h2>
+      {% if invitations %}
+        {% for inv in invitations %}
+          <div class="card">
+            <div class="header">
+              <span class="tenant-name">{{ inv.tenant.name }}</span>
+              <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
+            </div>
+            <div class="meta">
+              Convidado por {{ inv.invited_by.email }} em {{ inv.created_at|date:"d/m/Y" }}
+              {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
+            </div>
+            {% if inv.status == "pending" %}
+              <div class="actions">
+                <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-accept">Aceitar</button>
+                </form>
+                <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-reject">Rejeitar</button>
+                </form>
+                <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-cancel">Cancelar</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Nenhum convite recebido.</p>
+      {% endif %}
     {% else %}
-      <p class="empty">Nenhum convite recebido.</p>
+      <h2>Convites recebidos</h2>
+      {% if invitations %}
+        {% for inv in invitations %}
+          <div class="card">
+            <div class="header">
+              <span class="tenant-name">{{ inv.tenant.name }}</span>
+              <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
+            </div>
+            <div class="meta">
+              Convidado por {{ inv.invited_by.email }} em {{ inv.created_at|date:"d/m/Y" }}
+              {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
+            </div>
+            {% if inv.status == "pending" %}
+              <div class="actions">
+                <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-accept">Aceitar</button>
+                </form>
+                <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-reject">Rejeitar</button>
+                </form>
+                <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                  <button type="submit" class="btn btn-cancel">Cancelar</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty">Nenhum convite recebido.</p>
+      {% endif %}
     {% endif %}
 
     <!-- Agendamentos -->
