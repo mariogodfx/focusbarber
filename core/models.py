@@ -1211,3 +1211,42 @@ class SessionProduct(TenantOwnedModel):
         if not self.unit_price and self.product_id:
             self.unit_price = self.product.price
         super().save(*args, **kwargs)
+
+
+class Payment(TenantOwnedModel):
+    """Pagamento manual de uma sessao (Sprint 8)."""
+
+    class PaymentMethod(models.TextChoices):
+        DINHEIRO = "dinheiro", _("Dinheiro")
+        PIX = "pix", _("PIX")
+        DEBITO = "debito", _("Débito")
+        CREDITO = "credito", _("Crédito")
+
+    session = models.OneToOneField(
+        Session,
+        on_delete=models.CASCADE,
+        related_name="payment",
+        verbose_name=_("sessao"),
+    )
+    amount = models.DecimalField(_("valor"), max_digits=10, decimal_places=2)
+    payment_method = models.CharField(
+        _("forma de pagamento"), max_length=20, choices=PaymentMethod.choices,
+    )
+    paid_at = models.DateTimeField(_("pago em"), auto_now_add=True)
+    confirmed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_("confirmado por"),
+    )
+    notes = models.TextField(_("observacoes"), blank=True)
+
+    class Meta:
+        verbose_name = _("pagamento")
+        verbose_name_plural = _("pagamentos")
+
+    def __str__(self):
+        return "{} - R$ {:.2f} ({})".format(
+            self.session.client_name, self.amount,
+            self.get_payment_method_display(),
+        )

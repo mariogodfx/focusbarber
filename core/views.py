@@ -20,6 +20,7 @@ from django.db import models
 
 from .models import (
     Appointment,
+    Payment,
     Product,
     Professional,
     ProfessionalInvitation,
@@ -65,7 +66,7 @@ def _professional_dashboard_context(user):
     sessions = (
         Session.objects.bypass_tenant()
         .filter(professional__user=user)
-        .select_related("professional", "professional__tenant", "appointment")
+        .select_related("professional", "professional__tenant", "appointment", "service", "payment")
         .prefetch_related(
             models.Prefetch("items", queryset=SessionProduct.objects.bypass_tenant().select_related("product"))
         )
@@ -427,4 +428,44 @@ def produto_inativar(request, pk):
     prod.is_active = False
     prod.save(update_fields=["is_active"])
     messages.success(request, "Produto '{}' inativado.".format(prod.name))
+    return redirect("core:painel")
+
+
+@login_required
+def pagamento_registrar(request, pk):
+    """Registra pagamento manual para uma sessao concluida."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    sess = get_object_or_404(
+        Session.objects.bypass_tenant(),
+        pk=pk, professional__user=request.user,
+        status=Session.Status.COMPLETED,
+    )
+    if hasattr(sess, "payment"):
+        messages.error(request, "Esta sessao ja possui pagamento registrado.")
+        return redirect("core:painel")
+    amount = request.POST.get("amount", "").strip()
+    method = request.POST.get("payment_method", "").strip()
+    if not amount or not method:
+        messages.error(request, "Valor e forma de pagamento sao obrigatorios.")
+        return redirect("core:painel")
+    try:
+        amount = Decimal(amount)
+    except Exception:
+        messages.error(request, "Valor invalido.")
+        return redirect("core:painel")
+    if method not in dict(Payment.PaymentMethod.choices):
+        messages.error(request, "Forma de pagamento invalida.")
+        return redirect("core:painel")
+    Payment.objects.bypass_tenant().create(
+        tenant=sess.tenant,
+        session=sess,
+        amount=amount,
+        payment_method=method,
+        confirmed_by=request.user,
+    )
+    messages.success(
+        request,
+        "Pagamento de R$ {:.2f} registrado para '{}'!".format(amount, sess.client_name),
+    )
     return redirect("core:painel")

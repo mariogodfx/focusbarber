@@ -502,9 +502,9 @@ validar cálculo final (X)
 
 🧪 SPRINT 8 — PAGAMENTOS
 MANUAL
-pagamento manual
-confirmação receita
-validar regra: sem pagamento = sem receita
+pagamento manual (X)
+confirmação receita (X)
+validar regra: sem pagamento = sem receita (X)
 
 🧪 SPRINT 9 — DASHBOARD
 MANUAL

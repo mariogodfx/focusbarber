@@ -92,6 +92,7 @@
     .badge.in_progress { background: rgba(200,169,126,0.15); color: var(--gold); border:1px solid var(--gold); }
     .badge.confirmed { background: rgba(100,170,230,0.15); color: #64AAE6; border:1px solid #64AAE6; }
     .badge.completed { background: rgba(160,208,160,0.15); color: var(--green); border:1px solid var(--green); }
+    .badge.paid { background: rgba(160,208,160,0.15); color: var(--green); border:1px solid var(--green); }
 
     /* Buttons */
     .btn {
@@ -164,10 +165,10 @@
     <div class="brand">B<span class="amp">&amp;</span>C <small style="font-size:.65rem;color:var(--gray-light);letter-spacing:.2em">FOCUSBARBER</small></div>
     <div class="links">
       <span class="user-email">{{ user.email }}</span>
-      <a href="{% url 'base:profile' %}">Perfil</a>
-      {% if user.is_staff %}<a href="/admin/">Admin</a>{% endif %}
+      <a href="{% url 'base:profile' %}" style="height:32px;display:inline-flex;align-items:center">Perfil</a>
+      {% if user.is_staff %}<a href="/admin/" style="height:32px;display:inline-flex;align-items:center">Admin</a>{% endif %}
       <form method="post" action="{% url 'base:logout' %}" style="display:inline">{% csrf_token %}
-        <button type="submit" style="background:none;border:none;color:var(--gray-light);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">Sair</button>
+        <button type="submit" style="background:none;border:none;color:var(--gray-light);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;height:32px;display:inline-flex;align-items:center">Sair</button>
       </form>
     </div>
   </nav>
@@ -276,9 +277,32 @@
             {% if s.closed_at %} · {{ s.closed_at|date:"d/m/Y H:i" }}{% endif %}
           </div>
           {% if s.status == "completed" %}
-            <div class="actions" style="margin-top:.5rem">
+            <div class="actions" style="margin-top:.5rem;flex-wrap:wrap">
               <button type="button" class="btn btn-admin" onclick="abrirComanda({{ s.pk }})">Ver comanda</button>
+              {% if s.payment %}
+                <span class="badge paid" style="font-size:.7rem;height:32px;display:inline-flex;align-items:center">Pago</span>
+              {% else %}
+                <form method="post" action="{% url 'core:pagamento_registrar' s.pk %}" class="form-inline" data-valor-original="{{ s.total_amount|stringformat:'.2f' }}" onsubmit="return confirmarPagamento(this)">{% csrf_token %}
+                  <div style="display:inline-flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);height:32px;box-sizing:border-box">
+                    <span style="padding:0 0 0 .5rem;font-size:.75rem;color:var(--gray-light)">R$</span>
+                    <input type="text" name="amount" inputmode="decimal" value="{{ s.total_amount|stringformat:'.2f' }}" required style="background:none;border:none;color:var(--white);padding:.35rem .5rem .35rem .2rem;font-size:.75rem;font-family:inherit;outline:none;width:70px;height:100%;box-sizing:border-box">
+                  </div>
+                  <select name="payment_method" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box">
+                    <option value="">Forma</option>
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="pix">PIX</option>
+                    <option value="debito">Débito</option>
+                    <option value="credito">Crédito</option>
+                  </select>
+                  <button type="submit" class="btn btn-accept" style="padding:.35rem .7rem;font-size:.7rem;height:32px;display:inline-flex;align-items:center">Registrar pagamento</button>
+                </form>
+              {% endif %}
             </div>
+            {% if s.payment %}
+              <div class="meta" style="margin-top:.4rem;font-size:.78rem">
+                {{ s.payment.get_payment_method_display }} · R$ {{ s.payment.amount|floatformat:2 }} · {{ s.payment.paid_at|date:"d/m/Y \à\s H:i" }}
+              </div>
+            {% endif %}
             <div id="comanda-{{ s.pk }}" class="comanda-data" style="display:none">
               <div class="comanda-header" style="text-align:center;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px dashed var(--gold)">
                 <div style="font-size:1.1rem;font-weight:700;letter-spacing:.5px">FOCUSBARBER</div>
@@ -476,6 +500,20 @@
       if (e.target === document.getElementById('comanda-overlay')) {
         document.getElementById('comanda-overlay').classList.remove('active');
       }
+    }
+
+    function confirmarPagamento(form) {
+      var original = parseFloat(form.getAttribute('data-valor-original').replace(',', '.'));
+      var val = form.querySelector('[name=amount]').value.trim().replace(',', '.');
+      if (!val || isNaN(parseFloat(val))) {
+        alert('Informe um valor válido.');
+        return false;
+      }
+      var novo = parseFloat(val);
+      if (novo !== original) {
+        return confirm('Tem certeza que quer alterar para R$ ' + novo.toFixed(2) + ' ? O valor do atendimento foi R$ ' + original.toFixed(2));
+      }
+      return true;
     }
   </script>
 </body>

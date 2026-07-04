@@ -8,6 +8,7 @@ from django.utils.http import unquote
 from .models import (
     Appointment,
     BusinessHours,
+    Payment,
     Product,
     Professional,
     ProfessionalAvailability,
@@ -810,3 +811,11 @@ class SessionAdmin(TenantContextMixin, admin.ModelAdmin):
 class SessionProductAdmin(TenantContextMixin, admin.ModelAdmin):
     list_display = ("session", "product", "quantity", "unit_price", "total_price")
     search_fields = ("session__client_name", "product__name")
+
+
+@admin.register(Payment)
+class PaymentAdmin(TenantContextMixin, admin.ModelAdmin):
+    list_display = ("session", "amount", "payment_method", "paid_at", "confirmed_by")
+    list_filter = ("payment_method",)
+    search_fields = ("session__client_name",)
+    readonly_fields = ("paid_at",)
