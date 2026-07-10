@@ -18,6 +18,8 @@ from .views import (
     convite_enviar,
     convite_rejeitar,
     pagamento_registrar,
+    profissional_cadastrar,
+    profissional_toggle_active,
     produto_abastecer,
     produto_criar,
     produto_toggle_active,
@@ -52,4 +54,6 @@ urlpatterns = [
     path("painel/produto/<int:pk>/abastecer/", produto_abastecer, name="produto_abastecer"),
     path("painel/produto/<int:pk>/toggle-active/", produto_toggle_active, name="produto_toggle_active"),
     path("painel/produto/<int:pk>/movimentacoes/", produto_movimentacoes, name="produto_movimentacoes"),
+    path("painel/profissional/cadastrar/", profissional_cadastrar, name="profissional_cadastrar"),
+    path("painel/profissional/<int:pk>/toggle-active/", profissional_toggle_active, name="profissional_toggle_active"),
 ]

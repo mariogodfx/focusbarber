@@ -135,14 +135,41 @@
       background: rgba(200,169,126,0.1); color: var(--gold-light);
       border: 1px solid rgba(200,169,126,0.2);
     }
-    .form-inline { display:flex; gap:.4rem; align-items:center; flex-wrap:wrap; }
+    .form-inline { display:flex; gap:.35rem; align-items:center; flex-wrap:wrap; }
     .form-inline select, .form-inline input[type=number] {
       background:var(--black-medium); color:var(--white); border:1px solid rgba(200,169,126,0.2);
-      padding:.35rem .5rem; font-size:.75rem; font-family:inherit; outline:none; height:32px;
+      font-size:.75rem; font-family:inherit; outline:none; height:32px;
     }
     .form-inline select:focus, .form-inline input[type=number]:focus { border-color:var(--gold); }
     .form-inline input[type=number] { width:56px; }
     .empty { color: var(--gray); font-size:.85rem; padding:1rem 1.2rem; text-align:center; background: var(--black-light); border: 1px solid rgba(200,169,126,0.1); margin-bottom:.8rem; }
+
+    /* Custom dropdown */
+    .custom-select { position:relative; display:inline-block; }
+    .custom-select-trigger {
+      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+      background:var(--black-medium); color:var(--white); border:1px solid rgba(200,169,126,0.2);
+      padding:.35rem .8rem; font-size:9px; font-family:inherit; height:32px;
+      cursor:pointer; box-sizing:border-box; white-space:nowrap; border-radius:3px;
+    }
+    .custom-select-trigger::after {
+      content:''; width:0; height:0; border-left:4px solid transparent;
+      border-right:4px solid transparent; border-top:5px solid var(--gold);
+      flex-shrink:0;
+    }
+    .custom-select.open .custom-select-trigger { border-color:var(--gold); }
+    .custom-select-options {
+      position:absolute; top:100%; left:0; right:0; z-index:50;
+      background:var(--black-medium); border:1px solid rgba(200,169,126,0.2);
+      border-top:none; display:none; max-height:180px; overflow-y:auto;
+    }
+    .custom-select.open .custom-select-options { display:block; }
+    .custom-select-options div {
+      padding:.4rem .8rem; font-size:9px; color:var(--gray-light);
+      cursor:pointer; transition:background .2s;
+    }
+    .custom-select-options div:hover { background:rgba(200,169,126,0.15); color:var(--gold); }
+    .custom-select-options div.selected { color:var(--gold); background:rgba(200,169,126,0.1); }
 
     /* Comanda modal */
     .comanda-overlay {
@@ -225,15 +252,18 @@
 
       <h2>Convidar profissional</h2>
       <div class="card">
-        <form method="post" action="{% url 'core:convite_enviar' %}" class="form-inline">{% csrf_token %}
-          <input type="email" name="email" placeholder="E-mail do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;min-width:200px;border-radius:3px">
-          <select name="tenant_id" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;border-radius:3px">
-            <option value="">Barbearia</option>
-            {% for m in admin_tenants %}
-              <option value="{{ m.id }}">{{ m.name }}</option>
-            {% endfor %}
-          </select>
-          <button type="submit" class="btn btn-accept" style="height:32px;width:32px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:3px" title="Convidar">
+        <form method="post" action="{% url 'core:convite_enviar' %}" class="form-inline" style="flex-wrap:nowrap">{% csrf_token %}
+          <input type="email" name="email" placeholder="E-mail do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;min-width:160px;border-radius:3px;flex-shrink:1">
+          <div class="custom-select" data-required="true">
+            <input type="hidden" name="tenant_id" value="">
+            <button type="button" class="custom-select-trigger">Barbearia</button>
+            <div class="custom-select-options">
+              {% for m in admin_tenants %}
+                <div data-value="{{ m.id }}">{{ m.name }}</div>
+              {% endfor %}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-accept" style="height:32px;width:32px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:3px;flex-shrink:0" title="Convidar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9z"/></svg>
           </button>
         </form>
@@ -300,6 +330,80 @@
       {% else %}
         <p class="empty">Nenhum convite recebido.</p>
       {% endif %}
+    {% endif %}
+
+    {% if pode_convidar %}
+    <!-- Cadastro de profissionais -->
+    <h2>Cadastro de profissionais</h2>
+    <div class="card">
+      <form method="post" action="{% url 'core:profissional_cadastrar' %}">{% csrf_token %}
+        <div style="display:flex;flex-direction:column;gap:.45rem">
+          <input type="text" name="name" placeholder="Nome completo do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px">
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
+            {% if admin_tenants|length == 1 %}
+              <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:30px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
+              <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
+            {% else %}
+            <div class="custom-select" data-required="true" style="width:100%">
+              <input type="hidden" name="tenant_id" value="">
+              <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
+              <div class="custom-select-options">
+                {% for t in admin_tenants %}
+                  <div data-value="{{ t.id }}">{{ t.name }}</div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+            <input type="password" name="password" placeholder="Senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
+            <div class="custom-select" data-required="true" style="width:100%">
+              <input type="hidden" name="role" value="">
+              <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Perfil</button>
+              <div class="custom-select-options">
+                {% if user.is_superadmin %}
+                  <div data-value="owner">Dono</div>
+                {% endif %}
+                {% if user.is_superadmin or user.role == "owner" or user.role == "manager" %}
+                  <div data-value="manager">Gerente</div>
+                {% endif %}
+                <div data-value="professional">Profissional</div>
+              </div>
+            </div>
+            <input type="password" name="confirm_password" placeholder="Confirmar senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+          </div>
+          <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Cadastrar</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+
+    {% if pode_convidar and all_professionals %}
+    <!-- Profissionais cadastrados -->
+    <h2>Profissionais cadastrados</h2>
+    <div class="card" style="padding:.6rem .8rem">
+      {% for p in all_professionals %}
+        <div style="display:grid;grid-template-columns:1fr auto;gap:1rem .8rem;{% if not forloop.last %}border-bottom:1px solid rgba(200,169,126,0.08);padding-bottom:.5rem;margin-bottom:.5rem{% endif %}">
+          <div style="display:flex;flex-direction:column;gap:1px">
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ p.name }}</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> {{ p.email }}</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg> {{ p.tenant }}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;justify-content:center">
+            <div style="font-size:.68rem;color:var(--gray-light)">Serviços: {{ p.services_count }}</div>
+            <div style="font-size:.68rem;color:var(--gray-light)">Dias disponíveis: {{ p.available_days }}</div>
+            <div style="display:inline-flex;align-items:center;gap:3px">
+              <form method="post" action="{% url 'core:profissional_toggle_active' p.pk %}" style="display:inline-flex">{% csrf_token %}
+                <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if not p.is_active %}background:rgba(200,80,80,0.15);color:#e06666;border-color:#e06666{% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Inativo</button>
+              </form>
+              <form method="post" action="{% url 'core:profissional_toggle_active' p.pk %}" style="display:inline-flex">{% csrf_token %}
+                <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if p.is_active %}background:rgba(80,200,80,0.15);color:#66e066;border-color:#66e066{% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
     {% endif %}
 
     <!-- Agendamentos -->
@@ -380,24 +484,27 @@
           </div>
           <div class="meta" style="margin-top:0;display:grid;gap:.3rem;color:var(--gold)">
             <div style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><title>Barbearia</title><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg> {{ s.professional.tenant.name }}</div>
-            <div style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><title>Valor</title><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> R$ {{ s.partial_total|floatformat:2 }}{% if s.status == "completed" %}{% if s.payment %} <span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:var(--gold)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Pago via {{ s.payment.get_payment_method_display }}</span>{% else %} <span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Aguardando pagamento</span>{% endif %} <span class="badge" style="cursor:pointer;background:rgba(200,169,126,0.12);color:var(--gold);border:1px solid rgba(200,169,126,0.3);text-transform:none;letter-spacing:0;font-size:.6rem;padding:.15rem .5rem;display:inline-flex;align-items:center" onclick="abrirComanda({{ s.pk }})">Ver conta</span>{% elif s.status == "in_progress" %} <span style="font-size:.65rem;color:var(--gray-light);font-weight:400">(parcial)</span>{% endif %}</div>
+            <div style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><title>Valor</title><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> R$ {{ s.partial_total|floatformat:2 }}{% if s.status == "completed" %}{% if s.payment %} <span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:var(--gold)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Pago via {{ s.payment.get_payment_method_display }}</span>{% else %} <span style="display:inline-flex;align-items:center;gap:4px;font-size:.65rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Aguardando pagamento</span>{% endif %} <span class="badge" style="cursor:pointer;background:rgba(200,169,126,0.12);color:var(--gold);border:1px solid rgba(200,169,126,0.3);text-transform:none;letter-spacing:0;font-size:.6rem;padding:.15rem .5rem;display:inline-flex;align-items:center;gap:3px" onclick="abrirComanda({{ s.pk }})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg> Nota</span>{% elif s.status == "in_progress" %} <span style="font-size:.65rem;color:var(--gray-light);font-weight:400">(parcial)</span>{% endif %}</div>
             {% if s.closed_at %}<div style="display:inline-flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><title>Data</title><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg> {{ s.closed_at|date:"d/m/Y" }} às {{ s.closed_at|date:"H:i" }}</div>{% endif %}
           </div>
           {% if s.status == "completed" %}
             <div class="actions" style="margin-top:.5rem;flex-wrap:wrap">
               {% if not s.payment %}
                 <form method="post" action="{% url 'core:pagamento_registrar' s.pk %}" class="form-inline" data-valor-original="{{ s.total_amount|stringformat:'.2f' }}" onsubmit="return confirmarPagamento(this)">{% csrf_token %}
-                  <div style="display:inline-flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);height:32px;box-sizing:border-box">
+                  <div style="display:inline-flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);height:32px;box-sizing:border-box;border-radius:3px">
                     <span style="padding:0 0 0 .5rem;font-size:.75rem;color:var(--gray-light)">R$</span>
                     <input type="text" name="amount" inputmode="decimal" value="{{ s.total_amount|stringformat:'.2f' }}" required style="background:none;border:none;color:var(--white);padding:.35rem .5rem .35rem .2rem;font-size:.75rem;font-family:inherit;outline:none;width:70px;height:100%;box-sizing:border-box">
                   </div>
-                   <select name="payment_method" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:10px;font-family:inherit;outline:none;height:32px;box-sizing:border-box">
-                     <option value="">Forma</option>
-                     <option value="dinheiro">Dinheiro</option>
-                     <option value="pix">PIX</option>
-                     <option value="debito">Débito</option>
-                     <option value="credito">Crédito</option>
-                   </select>
+                    <div class="custom-select" data-required="true">
+                      <input type="hidden" name="payment_method" value="">
+                      <button type="button" class="custom-select-trigger">Forma</button>
+                      <div class="custom-select-options">
+                        <div data-value="dinheiro">Dinheiro</div>
+                        <div data-value="pix">PIX</div>
+                        <div data-value="debito">Débito</div>
+                        <div data-value="credito">Crédito</div>
+                      </div>
+                    </div>
                   <button type="submit" class="btn btn-accept" style="padding:.35rem .7rem;font-size:.7rem;height:32px;display:inline-flex;align-items:center">Pagar</button>
                 </form>
               {% endif %}
@@ -492,15 +599,18 @@
     {% if pode_convidar %}
     <div style="margin-bottom:1rem">
       <form method="post" action="{% url 'core:produto_criar' %}" class="form-inline">{% csrf_token %}
-        <select name="tenant_id" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box">
-          <option value="">Barbearia</option>
-          {% for t in admin_tenants %}
-            <option value="{{ t.id }}">{{ t.name }}</option>
-          {% endfor %}
-        </select>
-        <input type="text" name="name" placeholder="Nome do produto" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box">
-        <input type="text" name="price" placeholder="Preco" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:80px">
-        <input type="number" name="quantity" placeholder="Estoque" value="0" min="0" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:70px">
+        <div class="custom-select" data-required="true">
+          <input type="hidden" name="tenant_id" value="">
+          <button type="button" class="custom-select-trigger">Barbearia</button>
+          <div class="custom-select-options">
+            {% for t in admin_tenants %}
+              <div data-value="{{ t.id }}">{{ t.name }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <input type="text" name="name" placeholder="Nome do produto" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;border-radius:3px">
+        <input type="text" name="price" placeholder="Preco" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:80px;border-radius:3px">
+        <input type="number" name="quantity" placeholder="Estoque" value="0" min="0" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:70px;border-radius:3px">
         <button type="submit" class="btn btn-accept" style="height:32px;display:inline-flex;align-items:center">Criar</button>
       </form>
     </div>
@@ -508,22 +618,36 @@
     {% if products %}
       <div class="card" style="padding:.6rem .8rem">
         {% for prod in products %}
-          <div style="display:flex;align-items:center;gap:.4rem;{% if not forloop.last %}border-bottom:1px solid rgba(200,169,126,0.08);padding-bottom:.45rem;margin-bottom:.45rem{% endif %}">
-            <span style="font-size:.75rem;min-width:90px">{{ prod.name }}</span>
-            <span style="font-size:.75rem;color:var(--gold);margin-left:auto">R$ {{ prod.price|floatformat:2 }}</span>
-            <span style="font-size:.7rem;color:var(--gray-light)">(Estoque: {{ prod.quantity }})</span>
-            {% if pode_convidar %}
-            <form method="post" action="{% url 'core:produto_abastecer' prod.id %}" style="display:inline-flex;align-items:center;gap:.3rem">
-              {% csrf_token %}
-              <input type="number" name="quantity" placeholder="+" value="" min="1" title="insira a quantidade para abastecer" style="width:48px;background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.7rem;font-family:inherit;outline:none;height:28px;box-sizing:border-box;text-align:center">
-              <button type="submit" class="btn" title="Clique para abastecer o estoque" style="height:28px;font-size:.7rem;padding:0 .45rem;display:inline-flex;align-items:center;border:1px solid rgba(200,169,126,0.3)">ADD</button>
-            </form>
-            <a href="{% url 'core:produto_movimentacoes' prod.id %}" title="Relatório - Ver movimentações" style="font-size:.68rem;color:var(--gold);border:1px solid var(--gold);padding:.2rem .5rem;border-radius:4px;text-decoration:none;height:28px;display:inline-flex;align-items:center">REL</a>
-            <form method="post" action="{% url 'core:produto_toggle_active' prod.id %}" style="display:inline-flex">
-              {% csrf_token %}
-              <button type="submit" class="btn" style="height:28px;font-size:.65rem;padding:0 .5rem;display:inline-flex;align-items:center;border:1px solid rgba(200,169,126,0.3);border-radius:4px;{% if prod.is_active %}background:rgba(80,200,80,0.15);color:#66e066;border-color:#66e066{% else %}background:rgba(200,80,80,0.15);color:#e06666;border-color:#e06666{% endif %}">{% if prod.is_active %}ATV{% else %}DES{% endif %}</button>
-            </form>
-            {% endif %}
+          <div style="display:grid;grid-template-columns:1fr auto;gap:1rem .8rem;{% if not forloop.last %}border-bottom:1px solid rgba(200,169,126,0.08);padding-bottom:.6rem;margin-bottom:.6rem{% endif %}">
+            <div style="display:flex;flex-direction:column;gap:3px;justify-content:center">
+              <div style="font-size:.75rem;font-weight:600">{{ prod.name }}</div>
+              <div style="display:inline-flex;align-items:center;gap:6px">
+                <span style="font-size:.72rem;color:var(--gold)">R$ {{ prod.price|floatformat:2 }}</span>
+                <span style="font-size:.68rem;color:var(--gray-light)">(Estoque: {{ prod.quantity }})</span>
+              </div>
+              {% if pode_convidar %}
+              <div style="display:inline-flex;align-items:center;gap:.2rem;margin-top:1px">
+                <form method="post" action="{% url 'core:produto_abastecer' prod.id %}" style="display:inline-flex;align-items:center;gap:.2rem">
+                  {% csrf_token %}
+                  <input type="number" name="quantity" placeholder="+" value="" min="1" title="insira a quantidade para abastecer" style="width:40px;background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:0 .2rem;font-size:.62rem;font-family:inherit;outline:none;height:18px;box-sizing:border-box;text-align:center;border-radius:3px">
+                  <button type="submit" class="btn" title="Clique para abastecer o estoque" style="height:18px;font-size:.62rem;padding:.1rem .4rem;display:inline-flex;align-items:center;border:1px solid rgba(200,169,126,0.3);border-radius:3px">Abastecer</button>
+                </form>
+              </div>
+              {% endif %}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;justify-content:center;align-items:flex-end">
+              {% if pode_convidar %}
+              <a href="{% url 'core:produto_movimentacoes' prod.id %}" title="Visualizar as movimentações" style="font-size:.62rem;color:var(--gold);border:1px solid var(--gold);padding:.1rem .5rem;border-radius:999px;text-decoration:none;height:18px;display:inline-flex;align-items:center">Movimentações</a>
+              <div style="display:inline-flex;align-items:center;gap:3px">
+                <form method="post" action="{% url 'core:produto_toggle_active' prod.id %}" style="display:inline-flex">{% csrf_token %}
+                  <button type="submit" title="Inativar produto" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if prod.is_active %}background:transparent;color:var(--gray);border-color:var(--gray){% else %}background:rgba(200,80,80,0.15);color:#e06666;border-color:#e06666{% endif %}">Inativo</button>
+                </form>
+                <form method="post" action="{% url 'core:produto_toggle_active' prod.id %}" style="display:inline-flex">{% csrf_token %}
+                  <button type="submit" title="Ativar produto" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if prod.is_active %}background:rgba(80,200,80,0.15);color:#66e066;border-color:#66e066{% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
+                </form>
+              </div>
+              {% endif %}
+            </div>
           </div>
         {% endfor %}
       </div>
@@ -615,7 +739,35 @@
       }
     }
 
+    // Custom dropdown
+    document.querySelectorAll('.custom-select').forEach(function(container) {
+      var trigger = container.querySelector('.custom-select-trigger');
+      var options = container.querySelectorAll('.custom-select-options div');
+      var input = container.querySelector('input[type=hidden]');
+      trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        container.classList.toggle('open');
+      });
+      options.forEach(function(opt) {
+        opt.addEventListener('click', function() {
+          options.forEach(function(o) { o.classList.remove('selected'); });
+          opt.classList.add('selected');
+          trigger.childNodes[0].textContent = opt.textContent;
+          input.value = opt.getAttribute('data-value');
+          container.classList.remove('open');
+        });
+      });
+    });
+    document.addEventListener('click', function() {
+      document.querySelectorAll('.custom-select.open').forEach(function(c) { c.classList.remove('open'); });
+    });
+
     function confirmarPagamento(form) {
+      var metodo = form.querySelector('[name=payment_method]');
+      if (!metodo || !metodo.value) {
+        alert('Selecione uma forma de pagamento.');
+        return false;
+      }
       var original = parseFloat(form.getAttribute('data-valor-original').replace(',', '.'));
       var val = form.querySelector('[name=amount]').value.trim().replace(',', '.');
       if (!val || isNaN(parseFloat(val))) {

@@ -24,6 +24,7 @@ from .models import (
     Payment,
     Product,
     Professional,
+    ProfessionalAvailability,
     ProfessionalInvitation,
     Service,
     Session,
@@ -147,6 +148,31 @@ def _professional_dashboard_context(user):
         .filter(session_q, appointment__isnull=False, status=Session.Status.IN_PROGRESS)
         .values_list("appointment_id", flat=True)
     )
+    if pode_gerir_agenda:
+        prof_qs = (
+            Professional.objects.bypass_tenant()
+            .filter(tenant_id__in=admin_tenant_ids)
+            .select_related("user", "tenant")
+            .prefetch_related(
+                models.Prefetch("services", queryset=Service.objects.bypass_tenant()),
+                models.Prefetch("availability", queryset=ProfessionalAvailability.objects.bypass_tenant()),
+            )
+            .order_by("user__first_name")
+        )
+        all_professionals = []
+        for p in prof_qs:
+            available_days = sum(1 for a in p.availability.all() if a.available)
+            all_professionals.append({
+                "pk": p.pk,
+                "name": p.user.get_full_name() or p.user.email,
+                "email": p.user.email,
+                "tenant": p.tenant.name,
+                "services_count": p.services.all().count(),
+                "available_days": available_days,
+                "is_active": p.is_active,
+            })
+    else:
+        all_professionals = []
     admin_tenants = []
     sent_invitations = []
     if user.is_superadmin:
@@ -192,6 +218,7 @@ def _professional_dashboard_context(user):
         "pode_convidar": pode_convidar,
         "admin_tenants": admin_tenants,
         "sent_invitations": sent_invitations,
+        "all_professionals": all_professionals,
     }
 
 
@@ -341,6 +368,106 @@ def convite_cancelar(request, pk):
         messages.error(request, "; ".join(e.messages))
     finally:
         set_current_tenant(pt, bypass=False, user=pu)
+    return redirect("core:painel")
+
+
+@login_required
+def profissional_cadastrar(request):
+    """Cadastra um novo profissional (usuário) no painel."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    pode = (
+        request.user.is_superadmin
+        or request.user.role in ("owner", "manager")
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+        .exists()
+    )
+    if not pode:
+        messages.error(request, "Você não tem permissão para cadastrar profissionais.")
+        return redirect("core:painel")
+    name = request.POST.get("name", "").strip()
+    tenant_id = request.POST.get("tenant_id", "").strip()
+    role = request.POST.get("role", "").strip()
+    password = request.POST.get("password", "")
+    confirm = request.POST.get("confirm_password", "")
+    if not name or " " not in name:
+        messages.error(request, "Informe o nome e sobrenome do profissional.")
+        return redirect("core:painel")
+    if not tenant_id:
+        messages.error(request, "Selecione a barbearia.")
+        return redirect("core:painel")
+    if not role:
+        messages.error(request, "Selecione o perfil.")
+        return redirect("core:painel")
+    if not password or len(password) < 6:
+        messages.error(request, "A senha deve ter no mínimo 6 caracteres.")
+        return redirect("core:painel")
+    if password != confirm:
+        messages.error(request, "As senhas não conferem.")
+        return redirect("core:painel")
+    try:
+        tenant_id = int(tenant_id)
+    except (ValueError, TypeError):
+        messages.error(request, "Barbearia inválida.")
+        return redirect("core:painel")
+    from .models import Tenant
+    tenant = get_object_or_404(Tenant, pk=tenant_id)
+    allowed_roles = {"professional"}
+    if request.user.role == "owner" or request.user.is_superadmin:
+        allowed_roles.add("manager")
+    if request.user.is_superadmin:
+        allowed_roles.add("owner")
+    if role not in allowed_roles:
+        messages.error(request, "Perfil não permitido.")
+        return redirect("core:painel")
+    User = get_user_model()
+    first_name = name.rsplit(" ", 1)[0]
+    last_name = name.rsplit(" ", 1)[1] if " " in name else ""
+    email_base = name.lower().replace(" ", ".") + "@" + tenant.slug + ".local"
+    if User.objects.filter(email=email_base).exists():
+        messages.error(request, "Já existe um usuário com este e-mail gerado.")
+        return redirect("core:painel")
+    try:
+        user = User.objects.create_user(
+            email=email_base,
+            password=password,
+            tenant=tenant,
+            role=role,
+            first_name=first_name,
+            last_name=last_name,
+            is_active=True,
+        )
+        messages.success(request, f"Profissional '{name}' cadastrado com sucesso! E-mail: {email_base}")
+    except Exception as e:
+        messages.error(request, f"Erro ao cadastrar: {e}")
+    return redirect("core:painel")
+
+
+@login_required
+def profissional_toggle_active(request, pk):
+    """Alterna o status ativo/inativo de um profissional."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    prof = get_object_or_404(
+        Professional.objects.bypass_tenant().select_related("tenant"),
+        pk=pk,
+    )
+    pode = (
+        request.user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=prof.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+    if not pode:
+        messages.error(request, "Você não tem permissão para alterar este profissional.")
+        return redirect("core:painel")
+    prof.is_active = not prof.is_active
+    prof.save(update_fields=["is_active"])
+    status = "ativado" if prof.is_active else "desativado"
+    messages.success(request, f"Profissional '{prof.user.get_full_name() or prof.user.email}' {status}.")
     return redirect("core:painel")
 
 
