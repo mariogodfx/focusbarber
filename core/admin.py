@@ -17,6 +17,7 @@ from .models import (
     Service,
     Session,
     SessionProduct,
+    StockMovement,
     Tenant,
     TenantMembership,
     current_tenant,
@@ -811,6 +812,14 @@ class SessionAdmin(TenantContextMixin, admin.ModelAdmin):
 class SessionProductAdmin(TenantContextMixin, admin.ModelAdmin):
     list_display = ("session", "product", "quantity", "unit_price", "total_price")
     search_fields = ("session__client_name", "product__name")
+
+
+@admin.register(StockMovement)
+class StockMovementAdmin(TenantContextMixin, admin.ModelAdmin):
+    list_display = ("product", "quantity", "movement_type", "session", "created_by", "created_at")
+    list_filter = ("movement_type",)
+    search_fields = ("product__name", "description")
+    readonly_fields = ("created_at",)
 
 
 @admin.register(Payment)

@@ -1,0 +1,71 @@
+{% load static core_extras %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Movimentacoes - {{ produto.name }} - FocusBarber</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --gold:#C8A97E;--gold-dark:#A8885E;--black:#0A0A0A;--black-light:#141414;--black-medium:#1A1A1A;--white:#FAFAF9;--gray:#6B6B6B;--gray-light:#999999;--red:#E8A09A;--green:#A0D0A0; }
+    * { margin:0;padding:0;box-sizing:border-box }
+    body { background:#111;color:#e0d6c8;font-family:'Inter',system-ui,sans-serif;padding:2rem }
+    h1 { font-size:1.3rem;font-weight:600;margin-bottom:.3rem }
+    .back { font-size:.78rem;color:var(--gray-light);text-decoration:none;display:inline-block;margin-bottom:1rem }
+    .back:hover { color:var(--gold) }
+    .info { font-size:.8rem;color:var(--gray-light);margin-bottom:1.5rem }
+    .info strong { color:var(--white) }
+    .mov-table { width:100%;border-collapse:collapse }
+    .mov-table th,.mov-table td { text-align:left;padding:.5rem .6rem;font-size:.8rem;border-bottom:1px solid rgba(200,169,126,0.12) }
+    .mov-table th { color:var(--gold);font-weight:500 }
+    .badge-type { display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem }
+    .badge-consumption { background:rgba(200,80,80,0.15);color:#e06666 }
+    .badge-restock { background:rgba(80,200,80,0.15);color:#66e066 }
+    .badge-adjustment { background:rgba(200,169,126,0.15);color:var(--gold) }
+    .empty { background:var(--black-light);border:1px solid rgba(200,169,126,0.1);padding:1rem;font-size:.78rem;color:var(--gray-light);text-align:center;margin-bottom:1rem;border-radius:6px }
+    .saldo { color:#66e066;font-weight:600 }
+    .debito { color:#e06666;font-weight:600 }
+  </style>
+</head>
+<body>
+  <h1>{{ produto.name }}</h1>
+  <p class="info">
+    Estoque atual: <strong>{{ produto.quantity }}</strong> &middot;
+    Preco: R$ {{ produto.price|floatformat:2 }}
+  </p>
+  <a href="{% url 'core:painel' %}" class="back">&larr; Voltar</a>
+  {% if movimentacoes %}
+  <table class="mov-table">
+    <thead><tr>
+      <th>Data</th>
+      <th>Tipo</th>
+      <th>Qtd</th>
+      <th>Descricao</th>
+      <th>Por</th>
+    </tr></thead>
+    <tbody>
+    {% for m in movimentacoes %}
+      <tr>
+        <td style="white-space:nowrap">{{ m.created_at|date:"d/m/Y H:i" }}</td>
+        <td>
+          <span class="badge-type {% if m.movement_type == 'consumption' %}badge-consumption{% elif m.movement_type == 'restock' %}badge-restock{% else %}badge-adjustment{% endif %}">
+            {{ m.get_movement_type_display }}
+          </span>
+        </td>
+        <td class="{% if m.quantity > 0 %}saldo{% else %}debito{% endif %}">
+          {{ m.quantity|stringformat:"+d" }}
+        </td>
+        <td>{{ m.description|default:"-" }}</td>
+        <td style="font-size:.75rem">
+          {% if m.created_by %}{{ m.created_by.get_full_name|default:m.created_by.email }}{% else %}-{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">Nenhuma movimentacao registrada.</p>
+  {% endif %}
+</body>
+</html>

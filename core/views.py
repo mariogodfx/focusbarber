@@ -58,38 +58,12 @@ def _professional_dashboard_context(user):
         )
         .order_by("tenant__name")
     )
-    appointments = (
-        Appointment.objects.bypass_tenant()
-        .filter(professional__user=user)
-        .select_related("professional", "service", "professional__tenant")
-        .order_by("-date", "-start_time")
-    )
-    sessions = (
-        Session.objects.bypass_tenant()
-        .filter(professional__user=user)
-        .select_related("professional", "professional__tenant", "appointment", "service", "payment")
-        .prefetch_related(
-            models.Prefetch("items", queryset=SessionProduct.objects.bypass_tenant().select_related("product"))
-        )
-        .order_by("-started_at")
-    )
-    tenant_ids = set(
-        Professional.objects.bypass_tenant()
-        .filter(user=user)
-        .values_list("tenant_id", flat=True)
-    )
-    all_products = (
-        Product.objects.bypass_tenant()
-        .filter(tenant_id__in=tenant_ids, is_active=True)
-        .order_by("name")
-    )
-    products_by_tenant = {}
-    for p in all_products:
-        products_by_tenant.setdefault(p.tenant_id, []).append(p)
-    session_appointment_ids = set(
-        Session.objects.bypass_tenant()
-        .filter(professional__user=user, appointment__isnull=False)
-        .values_list("appointment_id", flat=True)
+    pode_gerir_agenda = (
+        user.role in ("owner", "manager")
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+        .exists()
+        or user.is_superadmin
     )
     pode_convidar = (
         user.role in ("owner", "manager") or user.is_superadmin
@@ -97,11 +71,81 @@ def _professional_dashboard_context(user):
         .filter(user=user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
         .exists()
     )
-    eh_owner = (
-        user.role == "owner"
-        or TenantMembership.objects.bypass_tenant()
-        .filter(user=user, role=TenantMembership.Role.OWNER, is_active=True)
-        .exists()
+    if pode_gerir_agenda:
+        admin_tenant_ids = set(
+            TenantMembership.objects.bypass_tenant()
+            .filter(user=user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+            .values_list("tenant_id", flat=True)
+        )
+        if user.role == "owner" and user.tenant_id:
+            admin_tenant_ids.add(user.tenant_id)
+        if user.is_superadmin:
+            from .models import Tenant
+            admin_tenant_ids = set(Tenant.objects.values_list("id", flat=True))
+        appointments = (
+            Appointment.objects.bypass_tenant()
+            .filter(tenant_id__in=admin_tenant_ids)
+            .select_related("professional", "service", "professional__tenant")
+            .order_by("-date", "-start_time")
+        )
+    else:
+        appointments = (
+            Appointment.objects.bypass_tenant()
+            .filter(professional__user=user)
+            .select_related("professional", "service", "professional__tenant")
+            .order_by("-date", "-start_time")
+        )
+    if pode_gerir_agenda:
+        sessions = (
+            Session.objects.bypass_tenant()
+            .filter(tenant_id__in=admin_tenant_ids)
+            .select_related("professional", "professional__tenant", "appointment", "service", "payment")
+            .prefetch_related(
+                models.Prefetch("items", queryset=SessionProduct.objects.bypass_tenant().select_related("product"))
+            )
+            .order_by("-started_at")
+        )
+    else:
+        sessions = (
+            Session.objects.bypass_tenant()
+            .filter(professional__user=user)
+            .select_related("professional", "professional__tenant", "appointment", "service", "payment")
+            .prefetch_related(
+                models.Prefetch("items", queryset=SessionProduct.objects.bypass_tenant().select_related("product"))
+            )
+            .order_by("-started_at")
+        )
+    tenant_ids = set(
+        Professional.objects.bypass_tenant()
+        .filter(user=user)
+        .values_list("tenant_id", flat=True)
+    )
+    if pode_gerir_agenda:
+        tenant_ids |= admin_tenant_ids
+    product_filters = {"tenant_id__in": tenant_ids}
+    if not pode_convidar:
+        product_filters["is_active"] = True
+    all_products = (
+        Product.objects.bypass_tenant()
+        .filter(**product_filters)
+        .order_by("name")
+    )
+    products_by_tenant = {}
+    for p in all_products:
+        products_by_tenant.setdefault(p.tenant_id, []).append(p)
+    if pode_gerir_agenda:
+        session_q = models.Q(professional__user=user) | models.Q(tenant_id__in=admin_tenant_ids)
+    else:
+        session_q = models.Q(professional__user=user)
+    session_appointment_ids = set(
+        Session.objects.bypass_tenant()
+        .filter(session_q, appointment__isnull=False)
+        .values_list("appointment_id", flat=True)
+    )
+    in_progress_session_ids = set(
+        Session.objects.bypass_tenant()
+        .filter(session_q, appointment__isnull=False, status=Session.Status.IN_PROGRESS)
+        .values_list("appointment_id", flat=True)
     )
     admin_tenants = []
     sent_invitations = []
@@ -121,7 +165,7 @@ def _professional_dashboard_context(user):
         )
         admin_tenants = [m.tenant for m in admin_memberships]
         admin_tenant_ids = [m.tenant.id for m in admin_memberships]
-        if eh_owner:
+        if pode_convidar:
             sent_invitations = (
                 ProfessionalInvitation.objects.bypass_tenant()
                 .filter(tenant_id__in=admin_tenant_ids)
@@ -143,6 +187,7 @@ def _professional_dashboard_context(user):
         "sessions": sessions,
         "products_by_tenant": products_by_tenant,
         "session_appointment_ids": session_appointment_ids,
+        "in_progress_session_ids": in_progress_session_ids,
         "products": all_products,
         "pode_convidar": pode_convidar,
         "admin_tenants": admin_tenants,
@@ -305,8 +350,19 @@ def appointment_confirmar(request, pk):
         return redirect("core:painel")
     appt = get_object_or_404(
         Appointment.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
+        pk=pk,
     )
+    pode_gerenciar = (
+        appt.professional.user_id == request.user.pk
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=appt.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+        or request.user.is_superadmin
+    )
+    if not pode_gerenciar:
+        raise PermissionDenied
     if appt.status == Appointment.Status.PENDING:
         appt.status = Appointment.Status.CONFIRMED
         appt.save(update_fields=["status"])
@@ -322,14 +378,31 @@ def appointment_concluir(request, pk):
         return redirect("core:painel")
     appt = get_object_or_404(
         Appointment.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
+        pk=pk,
     )
-    if appt.status == Appointment.Status.CONFIRMED:
-        appt.status = Appointment.Status.COMPLETED
-        appt.save(update_fields=["status"])
-        messages.success(request, "Agendamento de '{}' concluido.".format(appt.client_name))
-    else:
+    pode_gerenciar = (
+        appt.professional.user_id == request.user.pk
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=appt.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+        or request.user.is_superadmin
+    )
+    if not pode_gerenciar:
+        raise PermissionDenied
+    if appt.status != Appointment.Status.CONFIRMED:
         messages.error(request, "So e possivel concluir agendamentos confirmados.")
+        return redirect("core:painel")
+    sess_in_progress = Session.objects.bypass_tenant().filter(
+        appointment=appt, status=Session.Status.IN_PROGRESS,
+    ).first()
+    if sess_in_progress:
+        messages.error(request, "Feche a conta do atendimento antes de concluir o agendamento.")
+        return redirect("core:painel")
+    appt.status = Appointment.Status.COMPLETED
+    appt.save(update_fields=["status"])
+    messages.success(request, "Agendamento de '{}' concluido. Pendente: registrar pagamento.".format(appt.client_name))
     return redirect("core:painel")
 
 
@@ -339,8 +412,19 @@ def appointment_cancelar(request, pk):
         return redirect("core:painel")
     appt = get_object_or_404(
         Appointment.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
+        pk=pk,
     )
+    pode_gerenciar = (
+        appt.professional.user_id == request.user.pk
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=appt.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+        or request.user.is_superadmin
+    )
+    if not pode_gerenciar:
+        raise PermissionDenied
     if appt.status in (Appointment.Status.PENDING, Appointment.Status.CONFIRMED):
         appt.status = Appointment.Status.CANCELLED
         appt.save(update_fields=["status"])
@@ -359,15 +443,23 @@ def sessao_iniciar(request, pk):
         return redirect("core:painel")
     appt = get_object_or_404(
         Appointment.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
-        status=Appointment.Status.CONFIRMED,
+        pk=pk, status=Appointment.Status.CONFIRMED,
     )
+    pode_gerenciar = (
+        appt.professional.user_id == request.user.pk
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=appt.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+        or request.user.is_superadmin
+    )
+    if not pode_gerenciar:
+        raise PermissionDenied
     if Session.objects.bypass_tenant().filter(appointment=appt, status=Session.Status.IN_PROGRESS).exists():
         messages.error(request, "Ja existe uma sessao em andamento para este agendamento.")
         return redirect("core:painel")
-    prof = Professional.objects.bypass_tenant().filter(
-        user=request.user, tenant=appt.tenant,
-    ).first()
+    prof = appt.professional
     if not prof:
         messages.error(request, "Perfil profissional nao encontrado para esta barbearia.")
         return redirect("core:painel")
@@ -413,6 +505,19 @@ def sessao_iniciar_avulso(request):
     return redirect("core:painel")
 
 
+def _pode_gerenciar_sessao(user, sess):
+    """Verifica se user pode gerenciar a sessao (profissional, owner, manager, superadmin)."""
+    return (
+        sess.professional.user_id == user.pk
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=user, tenant=sess.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+        or user.is_superadmin
+    )
+
+
 @login_required
 def sessao_adicionar_produto(request, pk):
     """Adiciona produto a uma sessao em andamento."""
@@ -420,9 +525,10 @@ def sessao_adicionar_produto(request, pk):
         return redirect("core:painel")
     sess = get_object_or_404(
         Session.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
-        status=Session.Status.IN_PROGRESS,
+        pk=pk, status=Session.Status.IN_PROGRESS,
     )
+    if not _pode_gerenciar_sessao(request.user, sess):
+        raise PermissionDenied
     product_id = request.POST.get("product_id")
     quantity = int(request.POST.get("quantity", 1))
     if not product_id or quantity < 1:
@@ -450,9 +556,10 @@ def sessao_remover_produto(request, pk):
         return redirect("core:painel")
     item = get_object_or_404(
         SessionProduct.objects.bypass_tenant(),
-        pk=pk, session__professional__user=request.user,
-        session__status=Session.Status.IN_PROGRESS,
+        pk=pk, session__status=Session.Status.IN_PROGRESS,
     )
+    if not _pode_gerenciar_sessao(request.user, item.session):
+        raise PermissionDenied
     item.delete()
     messages.success(request, "Produto removido da sessao.")
     return redirect("core:painel")
@@ -465,9 +572,10 @@ def sessao_fechar(request, pk):
         return redirect("core:painel")
     sess = get_object_or_404(
         Session.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
-        status=Session.Status.IN_PROGRESS,
+        pk=pk, status=Session.Status.IN_PROGRESS,
     )
+    if not _pode_gerenciar_sessao(request.user, sess):
+        raise PermissionDenied
     items = SessionProduct.objects.bypass_tenant().filter(session=sess)
     servico = sess.service_price or 0
     produtos = sum(item.total_price for item in items)
@@ -486,9 +594,10 @@ def sessao_cancelar(request, pk):
         return redirect("core:painel")
     sess = get_object_or_404(
         Session.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
-        status=Session.Status.IN_PROGRESS,
+        pk=pk, status=Session.Status.IN_PROGRESS,
     )
+    if not _pode_gerenciar_sessao(request.user, sess):
+        raise PermissionDenied
     sess.status = Session.Status.CANCELLED
     sess.closed_at = datetime.now()
     sess.save(update_fields=["status", "closed_at"])
@@ -502,6 +611,7 @@ def produto_criar(request):
         return redirect("core:painel")
     name = request.POST.get("name", "").strip()
     price = request.POST.get("price", "").strip()
+    quantity = request.POST.get("quantity", "").strip()
     tenant_id = request.POST.get("tenant_id", "").strip()
     if not name or not price or not tenant_id:
         messages.error(request, "Nome, preco e barbearia sao obrigatorios.")
@@ -511,31 +621,110 @@ def produto_criar(request):
     except Exception:
         messages.error(request, "Preco invalido.")
         return redirect("core:painel")
-    if not Professional.objects.bypass_tenant().filter(
-        user=request.user, tenant_id=tenant_id,
-    ).exists():
-        messages.error(request, "Voce nao tem perfil nesta barbearia.")
+    qty = 0
+    if quantity:
+        try:
+            qty = int(quantity)
+        except (ValueError, TypeError):
+            messages.error(request, "Quantidade invalida.")
+            return redirect("core:painel")
+    pode_gerenciar = (
+        request.user.role in ("owner", "manager") or request.user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant_id=tenant_id,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+    if not pode_gerenciar:
+        messages.error(request, "Voce nao tem permissao para criar produtos nesta barbearia.")
         return redirect("core:painel")
     Product.objects.bypass_tenant().create(
-        tenant_id=tenant_id, name=name, price=price,
+        tenant_id=tenant_id, name=name, price=price, quantity=qty,
     )
-    messages.success(request, "Produto '{}' criado.".format(name))
+    messages.success(request, "Produto '{}' criado (estoque: {}).".format(name, qty))
     return redirect("core:painel")
 
 
 @login_required
-def produto_inativar(request, pk):
+def produto_toggle_active(request, pk):
+    """Ativa/desativa um produto."""
     if request.method != "POST":
         return redirect("core:painel")
     prod = get_object_or_404(Product.objects.bypass_tenant(), pk=pk)
-    if not Professional.objects.bypass_tenant().filter(
-        user=request.user, tenant=prod.tenant,
-    ).exists():
+    if not _pode_gerenciar_produto(request.user, prod):
         raise PermissionDenied
-    prod.is_active = False
+    prod.is_active = not prod.is_active
     prod.save(update_fields=["is_active"])
-    messages.success(request, "Produto '{}' inativado.".format(prod.name))
+    status = "ativado" if prod.is_active else "inativado"
+    messages.success(request, "Produto '{}' {}.".format(prod.name, status))
     return redirect("core:painel")
+
+
+def _pode_gerenciar_produto(user, prod):
+    return (
+        user.role in ("owner", "manager") or user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=user, tenant=prod.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+
+
+@login_required
+def produto_abastecer(request, pk):
+    """Adiciona quantidade ao estoque de um produto."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    prod = get_object_or_404(Product.objects.bypass_tenant(), pk=pk)
+    if not _pode_gerenciar_produto(request.user, prod):
+        raise PermissionDenied
+    qty = request.POST.get("quantity", "").strip()
+    if not qty:
+        messages.error(request, "Quantidade obrigatoria.")
+        return redirect("core:painel")
+    try:
+        qty = int(qty)
+    except (ValueError, TypeError):
+        messages.error(request, "Quantidade invalida.")
+        return redirect("core:painel")
+    if qty <= 0:
+        messages.error(request, "Quantidade deve ser positiva.")
+        return redirect("core:painel")
+    from .models import StockMovement
+    StockMovement.objects.bypass_tenant().create(
+        tenant=prod.tenant,
+        product=prod,
+        quantity=qty,
+        movement_type=StockMovement.MovementType.RESTOCK,
+        description=request.POST.get("description", "").strip(),
+        created_by=request.user,
+    )
+    Product.objects.bypass_tenant().filter(pk=prod.pk).update(
+        quantity=models.F("quantity") + qty
+    )
+    messages.success(request, "Estoque de '{}' atualizado: +{} unidades.".format(prod.name, qty))
+    return redirect("core:painel")
+
+
+@login_required
+def produto_movimentacoes(request, pk):
+    """Exibe historico de movimentacoes de um produto."""
+    prod = get_object_or_404(Product.objects.bypass_tenant(), pk=pk)
+    if not _pode_gerenciar_produto(request.user, prod):
+        raise PermissionDenied
+    from .models import StockMovement
+    movs = (
+        StockMovement.objects.bypass_tenant()
+        .filter(product=prod)
+        .select_related("created_by", "session")
+        .order_by("-created_at")
+    )
+    return render(request, "core/movimentacoes.html", {
+        "produto": prod,
+        "movimentacoes": movs,
+    })
 
 
 @login_required
@@ -545,9 +734,10 @@ def pagamento_registrar(request, pk):
         return redirect("core:painel")
     sess = get_object_or_404(
         Session.objects.bypass_tenant(),
-        pk=pk, professional__user=request.user,
-        status=Session.Status.COMPLETED,
+        pk=pk, status=Session.Status.COMPLETED,
     )
+    if not _pode_gerenciar_sessao(request.user, sess):
+        raise PermissionDenied
     if hasattr(sess, "payment"):
         messages.error(request, "Esta sessao ja possui pagamento registrado.")
         return redirect("core:painel")
@@ -571,8 +761,11 @@ def pagamento_registrar(request, pk):
         payment_method=method,
         confirmed_by=request.user,
     )
+    if sess.appointment and sess.appointment.status == Appointment.Status.CONFIRMED:
+        sess.appointment.status = Appointment.Status.COMPLETED
+        sess.appointment.save(update_fields=["status"])
     messages.success(
         request,
-        "Pagamento de R$ {:.2f} registrado para '{}'!".format(amount, sess.client_name),
+        "Pagamento de R$ {:.2f} registrado para '{}'! Agendamento concluido.".format(amount, sess.client_name),
     )
     return redirect("core:painel")

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="../refs/design_system/model_3/css/simplebar.css" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/perfect-scrollbar.css" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/metisMenu.min.css" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/pace.min.css" rel="stylesheet">
+  <script src="../refs/design_system/model_3/js/pace.min.js"></script>
+  <link href="../refs/design_system/model_3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/bootstrap-extended.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/app.css" rel="stylesheet">
+  <link href="../refs/design_system/model_3/css/icons.css" rel="stylesheet">
+  <style>
+    .ds-nav { position:fixed; top:0; left:0; right:0; height:48px; background:#0d0d0d; border-bottom:1px solid rgba(255,255,255,.12); z-index:9999; display:flex; align-items:center; padding:0 16px; gap:4px; overflow-x:auto; }
+    .ds-nav a { color:rgba(255,255,255,.7); font-size:12px; padding:4px 10px; border-radius:6px; white-space:nowrap; text-decoration:none; transition:all .2s; }
+    .ds-nav a:hover { color:#fff; background:rgba(255,255,255,.12); }
+    .ds-nav .ds-brand { color:#fff; font-weight:500; font-size:14px; margin-right:16px; letter-spacing:.5px; }
+    .ds-section { padding-top:48px; }
+    .ds-section h2.section-title { color:#fff; font-size:22px; margin-bottom:24px; padding:16px 0; border-bottom:1px solid rgba(255,255,255,.12); }
+    .ds-section h3.subsection-title { color:rgba(255,255,255,.85); font-size:16px; margin:24px 0 12px; }
+    .ds-showcase { display:flex; flex-wrap:wrap; gap:16px; margin:16px 0; }
+    .ds-showcase-item { display:flex; flex-direction:column; gap:4px; }
+    .ds-showcase-item .ds-label { font-size:11px; color:rgba(255,255,255,.5); text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+    .ds-colors-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; }
+    .ds-color-swatch { border-radius:10px; padding:20px 16px; display:flex; flex-direction:column; gap:4px; border:1px solid rgba(255,255,255,.1); }
+    .ds-color-swatch .ds-color-name { font-size:12px; color:rgba(255,255,255,.7); }
+    .ds-color-swatch .ds-color-value { font-size:11px; color:rgba(255,255,255,.5); font-family:monospace; }
+    .ds-typo-table { width:100%; border-collapse:collapse; }
+    .ds-typo-table td { padding:12px 16px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .ds-typo-table td:last-child { text-align:right; color:rgba(255,255,255,.5); font-size:12px; white-space:nowrap; }
+    .ds-typo-table tr:first-child td { border-top:1px solid rgba(255,255,255,.08); }
+    hr.ds-divider { border-color:rgba(255,255,255,.08); margin:32px 0; }
+  </style>
+  <title>FocusBarber - Design System</title>
+</head>
+<body class="bg-theme bg-theme2">
+  <nav class="ds-nav">
+    <span class="ds-brand">FocusBarber DS</span>
+    <a href="#section-0">Shell</a>
+    <a href="#section-1">Tipografia</a>
+    <a href="#section-2">Cores</a>
+    <a href="#section-3">Navegação</a>
+    <a href="#section-4">Formulários</a>
+    <a href="#section-5">Tabelas</a>
+    <a href="#section-6">Componentes</a>
+    <a href="#section-7">Layout</a>
+    <a href="#section-8">Motion</a>
+    <a href="#section-9">Ícones</a>
+  </nav>
+
+  <div class="wrapper">
+    <div id="section-0" class="ds-section">
+      <div class="sidebar-wrapper" data-simplebar="true" style="top:48px; height:calc(100% - 48px);">
+        <div class="sidebar-header" style="top:48px;">
+          <div><img src="../refs/design_system/model_3/images/logo-icon.png" class="logo-icon" alt="logo"></div>
+          <div><h4 class="logo-text">FocusBarber</h4></div>
+          <div class="toggle-icon ms-auto"><i class="bx bx-arrow-back"></i></div>
+        </div>
+        <ul class="metismenu" id="menu" style="margin-top:60px;">
+          <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="bx bx-home-alt"></i></div>
+              <div class="menu-title">Dashboard</div>
+            </a>
+            <ul>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Visão Geral</a></li>
+              <li><a href="javascript:;" class="mm-active"><i class="bx bx-radio-circle"></i>Analytics</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="bx bx-category"></i></div>
+              <div class="menu-title">Agendamentos</div>
+            </a>
+            <ul>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Novo Agendamento</a></li>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Calendário</a></li>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Histórico</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="bx bx-user"></i></div>
+              <div class="menu-title">Clientes</div>
+            </a>
+            <ul>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Lista</a></li>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Adicionar</a></li>
+            </ul>
+          </li>
+          <li class="menu-label">UI Elements</li>
+          <li>
+            <a href="javascript:;">
+              <div class="parent-icon"><i class="bx bx-cookie"></i></div>
+              <div class="menu-title">Widgets</div>
+            </a>
+          </li>
+          <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="bx bx-cart"></i></div>
+              <div class="menu-title">Produtos</div>
+            </a>
+            <ul>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Serviços</a></li>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Produtos</a></li>
+            </ul>
+          </li>
+          <li class="menu-label">Forms & Tables</li>
+          <li>
+            <a href="javascript:;" class="has-arrow">
+              <div class="parent-icon"><i class="bx bx-message-square-edit"></i></div>
+              <div class="menu-title">Relatórios</div>
+            </a>
+            <ul>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Financeiro</a></li>
+              <li><a href="javascript:;"><i class="bx bx-radio-circle"></i>Desempenho</a></li>
+            </ul>
+          </li>
+          <li class="menu-label">Pages</li>
+          <li><a href="javascript:;"><div class="parent-icon"><i class="bx bx-user-circle"></i></div><div class="menu-title">Perfil</div></a></li>
+          <li><a href="javascript:;"><div class="parent-icon"><i class="bx bx-help-circle"></i></div><div class="menu-title">Ajuda</div></a></li>
+        </ul>
+      </div>
+
+      <header>
+        <div class="topbar d-flex align-items-center" style="left:250px; top:48px;">
+          <nav class="navbar navbar-expand gap-3">
+            <div class="mobile-toggle-menu"><i class="bx bx-menu"></i></div>
+            <div class="search-bar flex-grow-1">
+              <div class="position-relative search-bar-box">
+                <input type="text" class="form-control search-control" placeholder="Buscar no sistema...">
+                <span class="position-absolute top-50 search-show translate-middle-y"><i class="bx bx-search"></i></span>
+                <span class="position-absolute top-50 search-close translate-middle-y"><i class="bx bx-x"></i></span>
+              </div>
+            </div>
+            <div class="top-menu ms-auto">
+              <ul class="navbar-nav align-items-center gap-1">
+                <li class="nav-item mobile-search-icon d-flex d-lg-none" data-bs-toggle="modal" data-bs-target="#SearchModal">
+                  <a class="nav-link" href="javascript:;"><i class="bx bx-search"></i></a>
+                </li>
+                <li class="nav-item dropdown dropdown-large">
+                  <a class="nav-link dropdown-toggle dropdown-toggle-nocaret position-relative" href="#" data-bs-toggle="dropdown"><span class="alert-count">3</span><i class="bx bx-bell"></i></a>
+                  <div class="dropdown-menu dropdown-menu-end">
+                    <a href="javascript:;"><div class="msg-header"><p class="msg-header-title">Notifica&ccedil;&otilde;es</p><p class="msg-header-badge">3 Novas</p></div></a>
+                    <div class="header-notifications-list">
+                      <a class="dropdown-item" href="javascript:;"><div class="d-flex align-items-center"><div class="user-online"><img src="../refs/design_system/model_3/images/avatar-1.png" class="msg-avatar" alt=""></div><div class="flex-grow-1"><h6 class="msg-name">Novo agendamento<span class="msg-time float-end">5 min</span></h6><p class="msg-info">João Silva agendou corte</p></div></div></a>
+                      <a class="dropdown-item" href="javascript:;"><div class="d-flex align-items-center"><div class="notify bg-light-success text-success"><i class="bx bx-check-square"></i></div><div class="flex-grow-1"><h6 class="msg-name">Pagamento confirmado<span class="msg-time float-end">2 h</span></h6><p class="msg-info">R$ 89,90 recebido</p></div></div></a>
+                      <a class="dropdown-item" href="javascript:;"><div class="d-flex align-items-center"><div class="notify bg-light-danger text-danger">!</div><div class="flex-grow-1"><h6 class="msg-name">Cancelamento<span class="msg-time float-end">1 h</span></h6><p class="msg-info">Cliente cancelou horário</p></div></div></a>
+                    </div>
+                    <a href="javascript:;"><div class="text-center msg-footer"><button class="btn btn-light w-100">Ver Todas</button></div></a>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="user-box dropdown px-3">
+              <a class="d-flex align-items-center nav-link dropdown-toggle gap-3 dropdown-toggle-nocaret" href="#" role="button" data-bs-toggle="dropdown">
+                <img src="../refs/design_system/model_3/images/avatar-2.png" class="user-img" alt="">
+                <div class="user-info"><p class="user-name mb-0">Admin FocusBarber</p><p class="designattion mb-0">Master</p></div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item d-flex align-items-center" href="javascript:;"><i class="bx bx-user fs-5"></i><span>Perfil</span></a></li>
+                <li><a class="dropdown-item d-flex align-items-center" href="javascript:;"><i class="bx bx-cog fs-5"></i><span>Configurações</span></a></li>
+                <li><div class="dropdown-divider mb-0"></div></li>
+                <li><a class="dropdown-item d-flex align-items-center" href="javascript:;"><i class="bx bx-log-out-circle"></i><span>Sair</span></a></li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      <div class="page-wrapper" style="margin-top:108px;">
+        <div class="page-content">
+          <div class="card radius-10">
+            <div class="card-body">
+              <h5 class="mb-0" style="color:#fff;">Design System — FocusBarber</h5>
+              <p class="mb-0 font-13" style="color:rgba(255,255,255,.5);">Documentação viva de componentes, padrões e tokens extraídos do template Dashtrans</p>
+            </div>
+          </div>
+
+          <!-- ============================================================ -->
+          <!-- SECTION 1: TIPOGRAFIA -->
+          <!-- ============================================================ -->
+          <div id="section-1">
+            <h2 class="section-title">1. Tipografia</h2>
+            <p class="mb-3 font-13" style="color:rgba(255,255,255,.5);">Fonte: Roboto, sans-serif — Tamanho base: 14px, Letter-spacing: 0.5px</p>
+            <table class="ds-typo-table">
+              <tr><td><h5 class="mb-0">Page Title</h5></td><td><h5 class="mb-1" style="color:#fff;">Dashboard / Visão Geral</h5></td><td>20px</td></tr>
+              <tr><td><h5 class="mb-0">Section Heading</h5></td><td><h5 class="mb-1" style="color:#fff;">Store Metrics</h5></td><td>18px</td></tr>
+              <tr><td><h5 class="mb-0">Card Title</h5></td><td><h6 class="mb-1 font-14">Payment from Michle Jhon</h6></td><td>14px</td></tr>
+              <tr><td><h5 class="mb-0">Subtitle</h5></td><td><p class="mb-0 font-13"><i class="bx bxs-calendar"></i> in last 30 days revenue</p></td><td>13px</td></tr>
+              <tr><td><h5 class="mb-0">Table Header</h5></td><td><th style="color:#fff;font-weight:400;">Payment Name</th></td><td>16px</td></tr>
+              <tr><td><h5 class="mb-0">Body Text</h5></td><td><p class="mb-0" style="color:rgba(255,255,255,.7);">The standard chunk of lorem ipsum used since the 1500s.</p></td><td>14px/21px</td></tr>
+              <tr><td><h5 class="mb-0">Body Text Small</h5></td><td><p class="mb-0 font-13" style="color:rgba(255,255,255,.5);">Reference Id #8547846</p></td><td>13px</td></tr>
+              <tr><td><h5 class="mb-0">Label</h5></td><td><p class="mb-0" style="color:rgba(255,255,255,.5);font-size:12px;text-transform:uppercase;letter-spacing:.5px;">SECTION LABEL</p></td><td>12px</td></tr>
+              <tr><td><h5 class="mb-0">Caption / Helper</h5></td><td><p class="mb-0" style="color:rgba(255,255,255,.35);font-size:11px;">Helper text for this field</p></td><td>11px</td></tr>
+              <tr><td><h5 class="mb-0">Monospace</h5></td><td><code style="color:rgba(255,255,255,.7);background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px;font-size:13px;">const agendamento = new Date()</code></td><td>13px</td></tr>
+            </table>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 2: CORES -->
+          <!-- ============================================================ -->
+          <div id="section-2">
+            <h2 class="section-title">2. Cores, Superfícies e Estados Semânticos</h2>
+
+            <h3 class="subsection-title">2.1 Cores de Interface</h3>
+            <div class="ds-colors-grid">
+              <div class="ds-color-swatch" style="background:#151313;"><span class="ds-color-name">Body Background</span><span class="ds-color-value">#151313</span></div>
+              <div class="ds-color-swatch" style="background:rgba(0,0,0,.2);"><span class="ds-color-name">Card Background</span><span class="ds-color-value">rgba(0,0,0,.20)</span></div>
+              <div class="ds-color-swatch" style="background:rgba(255,255,255,.12);"><span class="ds-color-name">Sidebar bg</span><span class="ds-color-value">rgba(255,255,255,.12)</span></div>
+              <div class="ds-color-swatch" style="background:rgba(0,0,0,.2);"><span class="ds-color-name">Topbar bg</span><span class="ds-color-value">rgba(0,0,0,.20)</span></div>
+              <div class="ds-color-swatch" style="background:#1e1e1e;"><span class="ds-color-name">Dropdown bg</span><span class="ds-color-value">#1e1e1e</span></div>
+              <div class="ds-color-swatch" style="background:#171717;"><span class="ds-color-name">Modal bg</span><span class="ds-color-value">#171717</span></div>
+              <div class="ds-color-swatch" style="background:rgba(255,255,255,.15);"><span class="ds-color-name">Table striped</span><span class="ds-color-value">rgba(255,255,255,.12)</span></div>
+              <div class="ds-color-swatch" style="background:rgba(255,255,255,.15);"><span class="ds-color-name">Badge bg-light</span><span class="ds-color-value">rgba(255,255,255,.15)</span></div>
+            </div>
+
+            <h3 class="subsection-title" style="margin-top:24px;">2.2 Cores Semânticas</h3>
+            <div class="ds-colors-grid">
+              <div class="ds-color-swatch" style="background:#17a00e;border:1px solid rgba(255,255,255,.15);"><span class="ds-color-name" style="color:#fff;">Success</span><span class="ds-color-value" style="color:rgba(255,255,255,.7);">#17a00e</span></div>
+              <div class="ds-color-swatch" style="background:#ffc107;"><span class="ds-color-name">Warning</span><span class="ds-color-value">#ffc107</span></div>
+              <div class="ds-color-swatch" style="background:#f41127;"><span class="ds-color-name" style="color:#fff;">Error / Danger</span><span class="ds-color-value" style="color:rgba(255,255,255,.7);">#f41127</span></div>
+              <div class="ds-color-swatch" style="background:#0dcaf0;"><span class="ds-color-name">Info</span><span class="ds-color-value">#0dcaf0</span></div>
+              <div class="ds-color-swatch" style="background:rgb(255 255 255 / 42%);"><span class="ds-color-name">Disabled</span><span class="ds-color-value">rgba(255,255,255,.42)</span></div>
+              <div class="ds-color-swatch" style="background:rgba(13,110,253,.11);border:1px solid rgba(255,255,255,.1);"><span class="ds-color-name">bg-light-primary</span><span class="ds-color-value">rgba(13,110,253,.11)</span></div>
+              <div class="ds-color-swatch" style="background:rgba(23,160,14,.11);border:1px solid rgba(255,255,255,.1);"><span class="ds-color-name">bg-light-success</span><span class="ds-color-value">rgba(23,160,14,.11)</span></div>
+              <div class="ds-color-swatch" style="background:rgba(244,17,39,.11);border:1px solid rgba(255,255,255,.1);"><span class="ds-color-name">bg-light-danger</span><span class="ds-color-value">rgba(244,17,39,.11)</span></div>
+            </div>
+
+            <div class="ds-showcase" style="margin-top:16px;">
+              <div class="ds-showcase-item"><span class="ds-label">Status Badges</span>
+                <span class="badge rounded-pill" style="background:#17a00e;color:#fff;">Completed</span>
+                <span class="badge rounded-pill" style="background:rgba(255,193,7,.2);color:#ffc107;">Pending</span>
+                <span class="badge rounded-pill" style="background:rgba(244,17,39,.2);color:#f41127;">Declined</span>
+              </div>
+              <div class="ds-showcase-item"><span class="ds-label">Alertas</span>
+                <div class="alert" style="background:rgba(23,160,14,.11);border:1px solid rgba(23,160,14,.3);color:#17a00e;padding:8px 16px;border-radius:10px;font-size:13px;">Operação realizada com sucesso</div>
+                <div class="alert" style="background:rgba(244,17,39,.11);border:1px solid rgba(244,17,39,.3);color:#f41127;padding:8px 16px;border-radius:10px;font-size:13px;">Erro ao processar pagamento</div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">2.3 Superfícies e Efeitos</h3>
+            <div class="ds-colors-grid">
+              <div class="ds-color-swatch" style="background:transparent;border:1px solid rgba(255,255,255,.15);"><span class="ds-color-name">Border padrão</span><span class="ds-color-value">rgba(255,255,255,.15)</span></div>
+              <div class="ds-color-swatch" style="background:transparent;border:1px solid rgba(255,255,255,.12);"><span class="ds-color-name">Border secundária</span><span class="ds-color-value">rgba(255,255,255,.12)</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Card Shadow</span><span class="ds-color-value">0 .3rem .8rem rgba(0,0,0,.12)</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Dropdown Shadow</span><span class="ds-color-value">0 .5rem 1rem rgba(0,0,0,.15)</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Border Radius (card)</span><span class="ds-color-value">10px</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Border Radius (padrão)</span><span class="ds-color-value">.25rem</span></div>
+            </div>
+
+            <div class="ds-showcase" style="margin-top:12px;">
+              <div class="ds-showcase-item"><span class="ds-label">Gradientes</span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <div style="width:60px;height:60px;border-radius:10px;background:linear-gradient(to right,#8e2de2,#4a00e0);"></div>
+                  <div style="width:60px;height:60px;border-radius:10px;background:linear-gradient(to right,#ff416c,#ff4b2b);"></div>
+                  <div style="width:60px;height:60px;border-radius:10px;background:linear-gradient(to right,#56ab2f,#a8e063);"></div>
+                  <div style="width:60px;height:60px;border-radius:10px;background:linear-gradient(to right,#f7971e,#ffd200);"></div>
+                  <div style="width:60px;height:60px;border-radius:10px;background:linear-gradient(to right,#56ccf2,#2f80ed);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 3: NAVEGAÇÃO -->
+          <!-- ============================================================ -->
+          <div id="section-3">
+            <h2 class="section-title">3. Navegação e Estrutura</h2>
+
+            <h3 class="subsection-title">3.1 Menu / Sidebar</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item"><span class="ds-label">Sidebar Default</span>
+                <div style="width:250px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:12px;">
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:rgba(255,255,255,.75);font-size:15px;"><i class="bx bx-home-alt" style="font-size:24px;"></i><span>Dashboard</span><i class="bx bx-chevron-down ms-auto"></i></div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:rgba(255,255,255,.15);color:#fff;font-size:15px;"><i class="bx bx-category" style="font-size:24px;"></i><span>Agendamentos</span><i class="bx bx-chevron-down ms-auto"></i></div>
+                  <div style="padding-left:36px;">
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;color:rgba(255,255,255,.75);font-size:15px;"><i class="bx bx-radio-circle" style="font-size:15px;"></i>Novo</div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;color:rgba(255,255,255,.75);font-size:15px;"><i class="bx bx-radio-circle" style="font-size:15px;"></i>Calendário</div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:rgba(255,255,255,.75);font-size:15px;"><i class="bx bx-user" style="font-size:24px;"></i><span>Clientes</span></div>
+                  <div style="padding:16px 12px 4px;color:rgba(255,255,255,.5);text-transform:uppercase;font-size:12px;letter-spacing:.5px;">UI Elements</div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">3.2 Header / Topbar</h3>
+            <p class="font-13" style="color:rgba(255,255,255,.5);">Altura: 60px | Left: 250px (alinhado com sidebar expandida) | Background: rgba(0,0,0,.20)</p>
+            <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 20px;display:flex;align-items:center;gap:20px;max-width:800px;">
+              <div><i class="bx bx-menu" style="font-size:26px;color:#fff;cursor:pointer;"></i></div>
+              <div style="flex:1;position:relative;"><input type="text" class="form-control search-control" placeholder="Buscar..." style="max-width:300px;"></div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div style="position:relative;width:42px;height:42px;display:flex;align-items:center;justify-content:center;"><i class="bx bx-bell" style="font-size:22px;color:#fff;"></i><span style="position:absolute;top:5px;left:22px;width:18px;height:18px;border-radius:50%;background:#f62718;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:500;">3</span></div>
+                <div style="display:flex;align-items:center;gap:8px;border-left:1px solid rgba(255,255,255,.15);border-right:1px solid rgba(255,255,255,.15);padding:0 12px;height:60px;">
+                  <img src="../refs/design_system/model_3/images/avatar-2.png" style="width:42px;height:42px;border-radius:50%;" alt="">
+                  <div><p style="font-size:15px;font-weight:500;color:#fff;margin:0;">Admin</p><p style="font-size:13px;color:rgba(255,255,255,.64);margin:0;">Master</p></div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">3.3 Breadcrumbs</h3>
+            <div style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.7);font-size:16px;">
+              <span><a href="javascript:;" style="color:rgba(255,255,255,.5);text-decoration:none;">Home</a></span>
+              <span style="font-family:LineIcons;color:#fff;font-size:12px;"></span>
+              <span><a href="javascript:;" style="color:rgba(255,255,255,.5);text-decoration:none;">Dashboard</a></span>
+              <span style="font-family:LineIcons;color:#fff;font-size:12px;"></span>
+              <span style="color:#fff;">eCommerce</span>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 4: FORMULÁRIOS -->
+          <!-- ============================================================ -->
+          <div id="section-4">
+            <h2 class="section-title">4. Componentes de Formulário</h2>
+
+            <h3 class="subsection-title">4.1 Inputs de Texto</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Default</span>
+                <input type="text" class="form-control" placeholder="Nome do cliente">
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Filled</span>
+                <input type="text" class="form-control" value="João Silva">
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Focus</span>
+                <input type="text" class="form-control" placeholder="Campo em foco" style="border-color:rgba(255,255,255,.35)!important;box-shadow:0 0 0 .25rem rgba(255,255,255,.25)!important;">
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Disabled</span>
+                <input type="text" class="form-control" placeholder="Desabilitado" disabled>
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Read-only</span>
+                <input type="text" class="form-control" value="Valor fixo" readonly>
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Com Label</span>
+                <label style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:4px;">Nome Completo</label>
+                <input type="text" class="form-control" placeholder="Digite o nome">
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Com erro</span>
+                <input type="text" class="form-control" value="email inválido" style="border-color:#f41127!important;box-shadow:0 0 0 .25rem rgba(244,17,39,.25)!important;">
+                <span style="color:#f41127;font-size:12px;">E-mail inválido</span>
+              </div>
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Completar</span>
+                <label style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:4px;">Telefone</label>
+                <input type="text" class="form-control" placeholder="(11) 99999-8888">
+                <span style="color:rgba(255,255,255,.35);font-size:11px;">Formato: (DD) XXXXX-XXXX</span>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">4.2 Select / Dropdown</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item" style="max-width:250px;">
+                <span class="ds-label">Select</span>
+                <select class="form-select">
+                  <option>Selecione um serviço</option>
+                  <option>Corte Masculino</option>
+                  <option>Corte Feminino</option>
+                  <option>Barba</option>
+                  <option>Hidratação</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">4.3 Checkbox e Radio</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chk1">
+                  <label class="form-check-label" for="chk1" style="color:rgba(255,255,255,.7);">Não marcado</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chk2" checked>
+                  <label class="form-check-label" for="chk2" style="color:rgba(255,255,255,.7);">Marcado</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="chk3" disabled>
+                  <label class="form-check-label" for="chk3" style="color:rgba(255,255,255,.4);">Desabilitado</label>
+                </div>
+              </div>
+              <div class="ds-showcase-item">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="radio1" id="rad1">
+                  <label class="form-check-label" for="rad1" style="color:rgba(255,255,255,.7);">Opção A</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="radio1" id="rad2" checked>
+                  <label class="form-check-label" for="rad2" style="color:rgba(255,255,255,.7);">Opção B</label>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">4.4 Textarea</h3>
+            <div style="max-width:400px;">
+              <textarea class="form-control" rows="3" placeholder="Observações do agendamento..."></textarea>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 5: TABELAS -->
+          <!-- ============================================================ -->
+          <div id="section-5">
+            <h2 class="section-title">5. Tabelas e Exibição de Dados</h2>
+
+            <h3 class="subsection-title">5.1 Tabela de Dados</h3>
+            <div class="table-responsive">
+              <table class="table align-middle mb-0 table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th style="color:#fff;font-weight:400;font-size:16px;">Cliente</th>
+                    <th style="color:#fff;font-weight:400;font-size:16px;">Data</th>
+                    <th style="color:#fff;font-weight:400;font-size:16px;">Valor</th>
+                    <th style="color:#fff;font-weight:400;font-size:16px;">Status</th>
+                    <th style="color:#fff;font-weight:400;font-size:16px;">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="d-flex align-items-center"><img src="../refs/design_system/model_3/images/avatar-1.png" class="rounded-circle" width="46" height="46" alt=""><div class="ms-2"><h6 class="mb-1 font-14">João Silva</h6><p class="mb-0 font-13">joao@email.com</p></div></div></td>
+                    <td>15 Mar, 2026</td>
+                    <td>R$ 89,90</td>
+                    <td><span class="badge rounded-pill" style="background:#17a00e;color:#fff;width:100%;">Completed</span></td>
+                    <td><div class="d-flex order-actions"><a href="javascript:;" style="font-size:18px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.15);border-radius:20%;color:#fff;"><i class="bx bx-cog"></i></a><a href="javascript:;" style="font-size:18px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.15);border-radius:20%;color:#fff;margin-left:8px;"><i class="bx bx-down-arrow-alt"></i></a></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="d-flex align-items-center"><img src="../refs/design_system/model_3/images/avatar-2.png" class="rounded-circle" width="46" height="46" alt=""><div class="ms-2"><h6 class="mb-1 font-14">Maria Santos</h6><p class="mb-0 font-13">maria@email.com</p></div></div></td>
+                    <td>15 Mar, 2026</td>
+                    <td>R$ 120,00</td>
+                    <td><span class="badge rounded-pill" style="background:rgba(255,193,7,.2);color:#ffc107;width:100%;">Pending</span></td>
+                    <td><div class="d-flex order-actions"><a href="javascript:;"><i class="bx bx-cog"></i></a><a href="javascript:;" class="ms-4"><i class="bx bx-down-arrow-alt"></i></a></div></td>
+                  </tr>
+                  <tr>
+                    <td><div class="d-flex align-items-center"><img src="../refs/design_system/model_3/images/avatar-3.png" class="rounded-circle" width="46" height="46" alt=""><div class="ms-2"><h6 class="mb-1 font-14">Carlos Pereira</h6><p class="mb-0 font-13">carlos@email.com</p></div></div></td>
+                    <td>14 Mar, 2026</td>
+                    <td>R$ 55,00</td>
+                    <td><span class="badge rounded-pill" style="background:rgba(244,17,39,.2);color:#f41127;width:100%;">Declined</span></td>
+                    <td><div class="d-flex order-actions"><a href="javascript:;"><i class="bx bx-cog"></i></a><a href="javascript:;" class="ms-4"><i class="bx bx-down-arrow-alt"></i></a></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 class="subsection-title">5.2 Cards de Métricas / KPIs</h3>
+            <div class="row row-cols-1 row-cols-lg-3" style="max-width:900px;">
+              <div class="col">
+                <div class="card radius-10">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                      <div><p class="mb-0">Receita Hoje</p><h4 class="my-1">R$ 1.245</h4><p class="mb-0 font-13"><i class="bx bxs-up-arrow align-middle"></i>12% desde ontem</p></div>
+                      <div class="widgets-icons ms-auto"><i class="bx bxs-wallet"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card radius-10">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                      <div><p class="mb-0">Agendamentos</p><h4 class="my-1">12</h4><p class="mb-0 font-13"><i class="bx bxs-up-arrow align-middle"></i>3 desde ontem</p></div>
+                      <div class="widgets-icons ms-auto"><i class="bx bxs-calendar"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="card radius-10">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center">
+                      <div><p class="mb-0">Clientes Ativos</p><h4 class="my-1">158</h4><p class="mb-0 font-13"><i class="bx bxs-up-arrow align-middle"></i>8% esta semana</p></div>
+                      <div class="widgets-icons ms-auto"><i class="bx bxs-group"></i></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 6: COMPONENTES UI -->
+          <!-- ============================================================ -->
+          <div id="section-6">
+            <h2 class="section-title">6. Componentes de UI</h2>
+
+            <h3 class="subsection-title">6.1 Botões</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item"><span class="ds-label">btn-light</span><button class="btn btn-light">Primary Action</button></div>
+              <div class="ds-showcase-item"><span class="ds-label">btn-light hover</span><button class="btn btn-light" style="background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.4);">Hover State</button></div>
+              <div class="ds-showcase-item"><span class="ds-label">Disabled</span><button class="btn btn-light" disabled>Disabled</button></div>
+              <div class="ds-showcase-item"><span class="ds-label">Com ícone</span><button class="btn btn-light"><i class="bx bx-plus"></i>Adicionar</button></div>
+              <div class="ds-showcase-item"><span class="ds-label">btn-outline</span><button class="btn btn-light" style="background:transparent;border:1px solid rgba(255,255,255,.35);">Outline</button></div>
+            </div>
+
+            <h3 class="subsection-title">6.2 Badges / Status Pills</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item"><span class="ds-label">Success</span><span class="badge rounded-pill bg-light text-white w-100">Completed</span></div>
+              <div class="ds-showcase-item"><span class="ds-label">Warning</span><span class="badge rounded-pill" style="background:rgba(255,193,7,.2);color:#ffc107;padding:4px 12px;font-size:13px;">Pending</span></div>
+              <div class="ds-showcase-item"><span class="ds-label">Danger</span><span class="badge rounded-pill" style="background:rgba(244,17,39,.2);color:#f41127;padding:4px 12px;font-size:13px;">Declined</span></div>
+              <div class="ds-showcase-item"><span class="ds-label">Info</span><span class="badge rounded-pill" style="background:rgba(13,202,240,.18);color:#0dcaf0;padding:4px 12px;font-size:13px;">In Progress</span></div>
+            </div>
+
+            <h3 class="subsection-title">6.3 Modais / Dialogs</h3>
+            <div style="background:#171717;border:1px solid rgba(255,255,255,.2);border-radius:10px;max-width:500px;padding:0;">
+              <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.15);"><h6 style="color:#fff;margin:0;">Confirmar Agendamento</h6></div>
+              <div style="padding:20px;"><p style="color:rgba(255,255,255,.7);font-size:14px;">Deseja confirmar o agendamento de João Silva para 15/03 às 14:00?</p></div>
+              <div style="padding:12px 20px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:8px;justify-content:flex-end;">
+                <button class="btn btn-light">Cancelar</button>
+                <button class="btn btn-light">Confirmar</button>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">6.4 Toast / Notifications</h3>
+            <div class="ds-showcase" style="flex-direction:column;max-width:400px;">
+              <div style="display:flex;align-items:center;gap:12px;background:#1e1e1e;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 16px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(23,160,14,.11);display:flex;align-items:center;justify-content:center;color:#17a00e;font-size:18px;"><i class="bx bx-check"></i></div>
+                <div><p style="color:rgba(255,255,255,.85);margin:0;font-size:14px;">Agendamento confirmado!</p><p style="color:rgba(255,255,255,.5);margin:0;font-size:12px;">João Silva - 14:00</p></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;background:#1e1e1e;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:12px 16px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:rgba(244,17,39,.11);display:flex;align-items:center;justify-content:center;color:#f41127;font-size:18px;"><i class="bx bx-x"></i></div>
+                <div><p style="color:rgba(255,255,255,.85);margin:0;font-size:14px;">Erro no pagamento</p><p style="color:rgba(255,255,255,.5);margin:0;font-size:12px;">Cartão recusado</p></div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">6.5 Avatar</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item"><span class="ds-label">Avatar 42px</span><img src="../refs/design_system/model_3/images/avatar-2.png" style="width:42px;height:42px;border-radius:50%;" alt=""></div>
+              <div class="ds-showcase-item"><span class="ds-label">Avatar 46px</span><img src="../refs/design_system/model_3/images/avatar-1.png" style="width:46px;height:46px;border-radius:50%;" alt=""></div>
+              <div class="ds-showcase-item"><span class="ds-label">Com status online</span>
+                <div style="position:relative;display:inline-block;">
+                  <img src="../refs/design_system/model_3/images/avatar-3.png" style="width:45px;height:45px;border-radius:50%;" alt="">
+                  <span style="position:absolute;bottom:1px;right:2px;width:8px;height:8px;border-radius:50%;background:#16e15e;box-shadow:0 0 0 2px #fff;"></span>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">6.6 Loading / Spinner</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item">
+                <div class="spinner-border text-light" role="status" style="width:2rem;height:2rem;"><span class="visually-hidden">Loading...</span></div>
+              </div>
+              <div class="ds-showcase-item">
+                <div class="spinner-grow text-light" role="status" style="width:2rem;height:2rem;"><span class="visually-hidden">Loading...</span></div>
+              </div>
+              <div class="ds-showcase-item" style="max-width:300px;width:100%;">
+                <span class="ds-label">Progress Bar</span>
+                <div class="progress" style="height:8px;"><div class="progress-bar" style="width:65%;background:#fff;"></div></div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">6.7 Dropdown Menu</h3>
+            <div style="background:#1e1e1e;border:1px solid rgba(0,0,0,.15);border-radius:10px;padding:8px 0;max-width:220px;box-shadow:0 .5rem 1rem rgba(0,0,0,.15);">
+              <a href="javascript:;" style="display:flex;align-items:center;gap:10px;padding:8px 20px;color:rgba(255,255,255,.85);font-size:14px;text-decoration:none;"><i class="bx bx-user fs-5"></i>Perfil</a>
+              <a href="javascript:;" style="display:flex;align-items:center;gap:10px;padding:8px 20px;color:rgba(255,255,255,.85);font-size:14px;text-decoration:none;"><i class="bx bx-cog fs-5"></i>Configurações</a>
+              <hr style="margin:4px 0;border-color:rgba(255,255,255,.15);">
+              <a href="javascript:;" style="display:flex;align-items:center;gap:10px;padding:8px 20px;color:rgba(255,255,255,.85);font-size:14px;text-decoration:none;"><i class="bx bx-log-out-circle"></i>Sair</a>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 7: LAYOUT -->
+          <!-- ============================================================ -->
+          <div id="section-7">
+            <h2 class="section-title">7. Layout e Espaçamento</h2>
+
+            <div class="ds-colors-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr));">
+              <div class="ds-color-swatch"><span class="ds-color-name">Sidebar width</span><span class="ds-color-value">250px</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Sidebar collapsed</span><span class="ds-color-value">70px</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Header height</span><span class="ds-color-value">60px</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Content padding</span><span class="ds-color-value">1.5rem</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Card margin bottom</span><span class="ds-color-value">1.5rem</span></div>
+              <div class="ds-color-swatch"><span class="ds-color-name">Card border radius</span><span class="ds-color-value">10px</span></div>
+            </div>
+
+            <h3 class="subsection-title">Layout de Listagem (Tabela + Filtros)</h3>
+            <div class="card radius-10">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <div><h5 class="mb-0" style="color:#fff;">Agendamentos</h5></div>
+                  <div class="ms-auto d-flex gap-2">
+                    <input type="text" class="form-control" placeholder="Buscar..." style="width:200px;">
+                    <button class="btn btn-light"><i class="bx bx-plus"></i> Novo</button>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table align-middle mb-0 table-hover">
+                    <thead class="table-light"><tr><th>Cliente</th><th>Serviço</th><th>Data</th><th>Status</th></tr></thead>
+                    <tbody>
+                      <tr><td>João Silva</td><td>Corte + Barba</td><td>15/03 14:00</td><td><span class="badge rounded-pill bg-light text-white w-100">Confirmado</span></td></tr>
+                      <tr><td>Maria Santos</td><td>Hidratação</td><td>15/03 15:30</td><td><span class="badge rounded-pill bg-light text-white w-100">Pendente</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">Layout de Dashboard (Métricas)</h3>
+            <div class="row row-cols-1 row-cols-lg-3">
+              <div class="col"><div class="card radius-10"><div class="card-body"><p class="mb-0">Receita Mensal</p><h4 class="my-1">R$ 8.450</h4><p class="mb-0 font-13"><i class="bx bxs-up-arrow align-middle"></i> 15% vs mês anterior</p></div></div></div>
+              <div class="col"><div class="card radius-10"><div class="card-body"><p class="mb-0">Serviços Realizados</p><h4 class="my-1">187</h4><p class="mb-0 font-13"><i class="bx bxs-up-arrow align-middle"></i> 8% vs mês anterior</p></div></div></div>
+              <div class="col"><div class="card radius-10"><div class="card-body"><p class="mb-0">Ticket Médio</p><h4 class="my-1">R$ 45,20</h4></div></div></div>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 8: MOTION -->
+          <!-- ============================================================ -->
+          <div id="section-8">
+            <h2 class="section-title">8. Motion e Interação</h2>
+
+            <div class="ds-showcase">
+              <div class="ds-showcase-item"><span class="ds-label">Dropdown animation (animdropdown)</span>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <button class="btn btn-light" onclick="this.nextElementSibling.classList.toggle('ds-anim-demo')">Toggle</button>
+                  <div class="dropdown-menu ds-anim-demo" style="display:none;position:relative;animation:.6s cubic-bezier(.25,.8,.25,1) 0s normal forwards 1 animdropdown;">
+                    <a class="dropdown-item" href="javascript:;">Action</a>
+                    <a class="dropdown-item" href="javascript:;">Another</a>
+                  </div>
+                </div>
+              </div>
+              <div class="ds-showcase-item"><span class="ds-label">Sidebar transition</span>
+                <p class="font-13" style="color:rgba(255,255,255,.5);">.sidebar-wrapper { transition: all .2s ease-out }</p>
+                <p class="font-13" style="color:rgba(255,255,255,.5);">De 250px a 70px no collapse</p>
+              </div>
+              <div class="ds-showcase-item"><span class="ds-label">Boxicons animations</span>
+                <div style="display:flex;gap:16px;font-size:28px;color:#fff;">
+                  <i class="bx bx-spin"></i>
+                  <i class="bx bx-tada"></i>
+                  <i class="bx bx-burst"></i>
+                </div>
+              </div>
+              <div class="ds-showcase-item"><span class="ds-label">Hover transitions</span>
+                <p class="font-13" style="color:rgba(255,255,255,.5);">Botões: transition: .3s cubic-bezier(.075,.82,.165,1)</p>
+                <p class="font-13" style="color:rgba(255,255,255,.5);">Cards/Tabelas: margin-top -.25rem + box-shadow</p>
+                <p class="font-13" style="color:rgba(255,255,255,.5);">Lista de clientes: background-color rgba(255,255,255,.15) + radius 10px</p>
+              </div>
+            </div>
+
+            <style>
+              .ds-anim-demo { display:block!important; }
+              @keyframes animdropdown { from { transform:translate3d(0,6px,0);opacity:0; } to { transform:translate3d(0,0,0);opacity:1; } }
+            </style>
+
+            <h3 class="subsection-title">Galeria de Motion</h3>
+            <div class="ds-showcase">
+              <div class="ds-showcase-item"><span class="ds-label">Spinner</span><div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div></div>
+              <div class="ds-showcase-item"><span class="ds-label">Pulse</span><div class="spinner-grow text-light" role="status"><span class="visually-hidden">Loading...</span></div></div>
+              <div class="ds-showcase-item"><span class="ds-label">bx-spin</span><i class="bx bx-spin" style="font-size:28px;color:#fff;"></i></div>
+              <div class="ds-showcase-item"><span class="ds-label">bx-tada</span><i class="bx bx-tada" style="font-size:28px;color:#fff;"></i></div>
+              <div class="ds-showcase-item"><span class="ds-label">bx-flashing</span><i class="bx bx-flashing" style="font-size:28px;color:#fff;"></i></div>
+            </div>
+          </div>
+
+          <hr class="ds-divider">
+
+          <!-- ============================================================ -->
+          <!-- SECTION 9: ÍCONES -->
+          <!-- ============================================================ -->
+          <div id="section-9">
+            <h2 class="section-title">9. Ícones</h2>
+            <p class="mb-3 font-13" style="color:rgba(255,255,255,.5);">Sistema: Boxicons (font-icon) + LineIcons (breadcrumb separator)</p>
+
+            <h3 class="subsection-title">Navegação</h3>
+            <div class="ds-showcase" style="font-size:24px;color:#fff;">
+              <div class="ds-showcase-item text-center"><i class="bx bx-home-alt"></i><span class="ds-label" style="margin-top:4px;">home-alt</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-category"></i><span class="ds-label" style="margin-top:4px;">category</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-user"></i><span class="ds-label" style="margin-top:4px;">user</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-cookie"></i><span class="ds-label" style="margin-top:4px;">cookie</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-cart"></i><span class="ds-label" style="margin-top:4px;">cart</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-message-square-edit"></i><span class="ds-label" style="margin-top:4px;">edit</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-bookmark-heart"></i><span class="ds-label" style="margin-top:4px;">bookmark</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-repeat"></i><span class="ds-label" style="margin-top:4px;">repeat</span></div>
+            </div>
+
+            <h3 class="subsection-title">Ações</h3>
+            <div class="ds-showcase" style="font-size:24px;color:#fff;">
+              <div class="ds-showcase-item text-center"><i class="bx bx-cog"></i><span class="ds-label" style="margin-top:4px;">cog</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-plus"></i><span class="ds-label" style="margin-top:4px;">plus</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-search"></i><span class="ds-label" style="margin-top:4px;">search</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-bell"></i><span class="ds-label" style="margin-top:4px;">bell</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-grid-alt"></i><span class="ds-label" style="margin-top:4px;">grid-alt</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-menu"></i><span class="ds-label" style="margin-top:4px;">menu</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-x"></i><span class="ds-label" style="margin-top:4px;">x</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-arrow-back"></i><span class="ds-label" style="margin-top:4px;">arrow-back</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-dots-horizontal-rounded"></i><span class="ds-label" style="margin-top:4px;">dots</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-chevron-down"></i><span class="ds-label" style="margin-top:4px;">chevron-down</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-chevron-up"></i><span class="ds-label" style="margin-top:4px;">chevron-up</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-down-arrow-alt"></i><span class="ds-label" style="margin-top:4px;">down-arrow</span></div>
+            </div>
+
+            <h3 class="subsection-title">Status e Dados</h3>
+            <div class="ds-showcase" style="font-size:24px;color:#fff;">
+              <div class="ds-showcase-item text-center"><i class="bx bx-check"></i><span class="ds-label" style="margin-top:4px;">check</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-check-square"></i><span class="ds-label" style="margin-top:4px;">check-square</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-radio-circle-marked"></i><span class="ds-label" style="margin-top:4px;">radio-circle</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-radio-circle"></i><span class="ds-label" style="margin-top:4px;">radio-circle</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bxs-wallet"></i><span class="ds-label" style="margin-top:4px;">wallet</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bxs-group"></i><span class="ds-label" style="margin-top:4px;">group</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bxs-calendar"></i><span class="ds-label" style="margin-top:4px;">calendar</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bxs-up-arrow"></i><span class="ds-label" style="margin-top:4px;">up-arrow</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bxs-down-arrow"></i><span class="ds-label" style="margin-top:4px;">down-arrow</span></div>
+            </div>
+
+            <h3 class="subsection-title">Ícones com animação</h3>
+            <div class="ds-showcase" style="font-size:24px;color:#fff;">
+              <div class="ds-showcase-item text-center"><i class="bx bx-spin"></i><span class="ds-label" style="margin-top:4px;">bx-spin</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-tada"></i><span class="ds-label" style="margin-top:4px;">bx-tada</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-burst"></i><span class="ds-label" style="margin-top:4px;">bx-burst</span></div>
+              <div class="ds-showcase-item text-center"><i class="bx bx-flashing"></i><span class="ds-label" style="margin-top:4px;">bx-flashing</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="overlay toggle-icon"></div>
+      <a href="javaScript:;" class="back-to-top"><i class="bx bxs-up-arrow-alt"></i></a>
+      <footer class="page-footer" style="left:250px;">
+        <p class="mb-0">Copyright &copy; 2026 FocusBarber Design System. Todos os direitos reservados.</p>
+      </footer>
+    </div>
+  </div>
+
+  <script src="../refs/design_system/model_3/js/bootstrap.bundle.min.js"></script>
+  <script src="../refs/design_system/model_3/js/jquery.min.js"></script>
+  <script src="../refs/design_system/model_3/js/simplebar.min.js"></script>
+  <script src="../refs/design_system/model_3/js/metisMenu.min.js"></script>
+  <script src="../refs/design_system/model_3/js/perfect-scrollbar.js"></script>
+  <script src="../refs/design_system/model_3/js/app.js"></script>
+  <script>
+    document.querySelector('.toggle-icon')?.addEventListener('click', function() {
+      document.querySelector('.wrapper').classList.toggle('toggled');
+    });
+    document.querySelector('.mobile-toggle-menu')?.addEventListener('click', function() {
+      document.querySelector('.wrapper').classList.toggle('toggled');
+    });
+    document.querySelector('.overlay')?.addEventListener('click', function() {
+      document.querySelector('.wrapper').classList.remove('toggled');
+    });
+  </script>
+</body>
+</html>

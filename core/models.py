@@ -924,7 +924,7 @@ class Appointment(TenantOwnedModel):
     """
 
     class Status(models.TextChoices):
-        PENDING = "pending", _("Aguardando confirmacao")
+        PENDING = "pending", _("Em analise")
         CONFIRMED = "confirmed", _("Confirmado")
         CANCELLED = "cancelled", _("Cancelado")
         COMPLETED = "completed", _("Concluido")
@@ -1101,6 +1101,7 @@ class Product(TenantOwnedModel):
     price = models.DecimalField(_("preco"), max_digits=10, decimal_places=2)
     cost = models.DecimalField(_("custo"), max_digits=10, decimal_places=2, blank=True, null=True)
     category = models.CharField(_("categoria"), max_length=60, blank=True)
+    quantity = models.PositiveIntegerField(_("quantidade em estoque"), default=0)
     is_active = models.BooleanField(_("ativo"), default=True)
 
     class Meta:
@@ -1125,7 +1126,7 @@ class Session(TenantOwnedModel):
     """
 
     class Status(models.TextChoices):
-        IN_PROGRESS = "in_progress", _("Em andamento")
+        IN_PROGRESS = "in_progress", _("Em curso")
         COMPLETED = "completed", _("Concluido")
         CANCELLED = "cancelled", _("Cancelado")
 
@@ -1177,6 +1178,13 @@ class Session(TenantOwnedModel):
     def is_open(self):
         return self.status == self.Status.IN_PROGRESS
 
+    @property
+    def partial_total(self):
+        total = self.service_price or 0
+        if self.pk:
+            total += sum(item.total_price for item in self.items.all())
+        return total
+
 
 class SessionProduct(TenantOwnedModel):
     """Produto consumido durante uma sessao (Sprint 7)."""
@@ -1210,7 +1218,36 @@ class SessionProduct(TenantOwnedModel):
     def save(self, *args, **kwargs):
         if not self.unit_price and self.product_id:
             self.unit_price = self.product.price
+        if not self.pk and self.product_id:
+            Product.objects.bypass_tenant().filter(pk=self.product_id).update(
+                quantity=models.F("quantity") - self.quantity
+            )
+            StockMovement.objects.bypass_tenant().create(
+                tenant_id=self.tenant_id,
+                product_id=self.product_id,
+                quantity=-self.quantity,
+                movement_type=StockMovement.MovementType.CONSUMPTION,
+                session=self.session,
+                description="",
+                created_by=current_user() or None,
+            )
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.product_id:
+            Product.objects.bypass_tenant().filter(pk=self.product_id).update(
+                quantity=models.F("quantity") + self.quantity
+            )
+            StockMovement.objects.bypass_tenant().create(
+                tenant_id=self.tenant_id,
+                product_id=self.product_id,
+                quantity=self.quantity,
+                movement_type=StockMovement.MovementType.ADJUSTMENT,
+                session=self.session,
+                description="Removido do atendimento",
+                created_by=current_user() or None,
+            )
+        super().delete(*args, **kwargs)
 
 
 class Payment(TenantOwnedModel):
@@ -1250,3 +1287,46 @@ class Payment(TenantOwnedModel):
             self.session.client_name, self.amount,
             self.get_payment_method_display(),
         )
+
+
+class StockMovement(TenantOwnedModel):
+    """Movimentacao de estoque de produto (Sprint 8)."""
+
+    class MovementType(models.TextChoices):
+        CONSUMPTION = "consumption", _("Consumo em atendimento")
+        RESTOCK = "restock", _("Abastecimento")
+        ADJUSTMENT = "adjustment", _("Ajuste manual")
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="stock_movements",
+        verbose_name=_("produto"),
+    )
+    quantity = models.IntegerField(_("quantidade"))
+    movement_type = models.CharField(
+        _("tipo"), max_length=20, choices=MovementType.choices,
+    )
+    session = models.ForeignKey(
+        Session,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="+",
+        verbose_name=_("sessao"),
+    )
+    description = models.CharField(_("descricao"), max_length=255, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        verbose_name=_("criado por"),
+    )
+    created_at = models.DateTimeField(_("criado em"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("movimentacao de estoque")
+        verbose_name_plural = _("movimentacoes de estoque")
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return "{} x {} ({})".format(self.quantity, self.product.name, self.get_movement_type_display())
