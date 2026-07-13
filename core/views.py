@@ -6,6 +6,7 @@ Rotas:
   - /painel/convite/<pk>/rejeitar/    -> rejeitar convite (POST)
   - /painel/convite/<pk>/cancelar/    -> cancelar convite (POST)
 """
+import json
 from datetime import datetime
 from decimal import Decimal
 
@@ -14,6 +15,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
@@ -26,6 +28,7 @@ from .models import (
     Professional,
     ProfessionalAvailability,
     ProfessionalInvitation,
+    ProfessionalService,
     Service,
     Session,
     SessionProduct,
@@ -34,6 +37,21 @@ from .models import (
     current_user,
     set_current_tenant,
 )
+
+
+def _validar_cpf(cpf):
+    """Valida CPF: 11 digitos, nao todos iguais, digitos verificadores ok."""
+    if not cpf or len(cpf) != 11 or not cpf.isdigit():
+        return False
+    if cpf == cpf[0] * 11:
+        return False
+    def _dig(digits):
+        s = sum(int(d) * (len(digits) + 1 - i) for i, d in enumerate(digits))
+        r = 11 - (s % 11)
+        return 0 if r >= 11 else r
+    d1 = _dig(cpf[:9])
+    d2 = _dig(cpf[:10])
+    return int(cpf[9]) == d1 and int(cpf[10]) == d2
 
 
 def _professional_dashboard_context(user):
@@ -134,6 +152,15 @@ def _professional_dashboard_context(user):
     products_by_tenant = {}
     for p in all_products:
         products_by_tenant.setdefault(p.tenant_id, []).append(p)
+    if pode_convidar:
+        all_services = (
+            Service.objects.bypass_tenant()
+            .filter(tenant_id__in=admin_tenant_ids)
+            .select_related("tenant")
+            .order_by("name")
+        )
+    else:
+        all_services = []
     if pode_gerir_agenda:
         session_q = models.Q(professional__user=user) | models.Q(tenant_id__in=admin_tenant_ids)
     else:
@@ -219,6 +246,7 @@ def _professional_dashboard_context(user):
         "admin_tenants": admin_tenants,
         "sent_invitations": sent_invitations,
         "all_professionals": all_professionals,
+        "all_services": all_services,
     }
 
 
@@ -230,6 +258,117 @@ class PainelProfissionalView(View):
 
     def get(self, request):
         ctx = _professional_dashboard_context(request.user)
+        completar_user_id = request.GET.get("completar")
+        if completar_user_id:
+            try:
+                User = get_user_model()
+                u = User.objects.get(pk=int(completar_user_id))
+                if u.tenant_id:
+                    ctx["completar_services"] = (
+                        Service.objects.bypass_tenant()
+                        .filter(tenant_id=u.tenant_id)
+                        .order_by("name")
+                    )
+                    from .models import BusinessHours
+                    WH = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
+                    open_days = set(
+                        BusinessHours.objects.bypass_tenant()
+                        .filter(tenant_id=u.tenant_id, is_open=True)
+                        .values_list("weekday", flat=True)
+                    )
+                    ctx["completar_weekdays"] = [(i, WH[i]) for i in sorted(open_days)]
+                    bh_qs = BusinessHours.objects.bypass_tenant().filter(
+                        tenant_id=u.tenant_id, is_open=True
+                    )
+                    bh_data = {}
+                    for bh in bh_qs:
+                        entry = {
+                            "open": bh.open_time.strftime("%H:%M"),
+                            "close": bh.close_time.strftime("%H:%M"),
+                        }
+                        if bh.break_start and bh.break_end:
+                            entry["break_start"] = bh.break_start.strftime("%H:%M")
+                            entry["break_end"] = bh.break_end.strftime("%H:%M")
+                        bh_data[bh.weekday] = entry
+                    ctx["bh_data_json"] = json.dumps(bh_data)
+                else:
+                    ctx["completar_services"] = []
+                    ctx["completar_weekdays"] = []
+            except (ValueError, User.DoesNotExist):
+                ctx["completar_services"] = []
+                ctx["completar_weekdays"] = []
+        # --- Edição de profissional por CPF ---
+        buscar_cpf = request.GET.get("buscar_cpf", "").strip()
+        if buscar_cpf:
+            pode_editar = (
+                request.user.is_superadmin
+                or request.user.role in ("owner", "manager")
+                or TenantMembership.objects.bypass_tenant()
+                .filter(user=request.user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+                .exists()
+            )
+            if not pode_editar:
+                messages.error(request, "Você não tem permissão para editar profissionais.")
+            else:
+                try:
+                    user = get_user_model().objects.get(cpf=buscar_cpf)
+                    prof = Professional.objects.bypass_tenant().filter(user=user).select_related("user", "tenant").first()
+                    if prof:
+                        ctx["editar_professional"] = prof
+                        ctx["editar_user"] = user
+                        ctx["editar_services"] = Service.objects.bypass_tenant().filter(tenant=prof.tenant).order_by("name")
+                        ctx["editar_selected_service_ids"] = set(prof.services.values_list("id", flat=True))
+                        from .models import BusinessHours
+                        WH = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
+                        open_days = set(
+                            BusinessHours.objects.bypass_tenant()
+                            .filter(tenant_id=prof.tenant_id, is_open=True)
+                            .values_list("weekday", flat=True)
+                        )
+                        ctx["editar_weekdays"] = [(i, WH[i]) for i in sorted(open_days)]
+                        bh_qs = BusinessHours.objects.bypass_tenant().filter(tenant_id=prof.tenant_id, is_open=True)
+                        bh_data = {}
+                        for bh in bh_qs:
+                            entry = {"open": bh.open_time.strftime("%H:%M"), "close": bh.close_time.strftime("%H:%M")}
+                            if bh.break_start and bh.break_end:
+                                entry["break_start"] = bh.break_start.strftime("%H:%M")
+                                entry["break_end"] = bh.break_end.strftime("%H:%M")
+                            bh_data[bh.weekday] = entry
+                        ctx["editar_bh_data_json"] = json.dumps(bh_data)
+                        avail_qs = ProfessionalAvailability.objects.bypass_tenant().filter(professional=prof)
+                        ctx["editar_availability"] = {a.weekday: a for a in avail_qs}
+                        ts_list = []
+                        wd_list = []
+                        for a in avail_qs:
+                            if a.available:
+                                wd_list.append(str(a.weekday))
+                                bh = bh_data.get(a.weekday)
+                                if bh:
+                                    pro_start = a.start_time
+                                    pro_end = a.end_time
+                                    if "break_start" in bh and "break_end" in bh:
+                                        slot_defs = [(bh['open'], bh['break_start']), (bh['break_end'], bh['close'])]
+                                    else:
+                                        slot_defs = [(bh['open'], '12:00'), ('12:00', '18:00'), ('18:00', bh['close'])]
+                                    for s, e in slot_defs:
+                                        s_t = datetime.strptime(s, '%H:%M').time()
+                                        e_t = datetime.strptime(e, '%H:%M').time()
+                                        if pro_start <= s_t and pro_end >= e_t:
+                                            ts_list.append(f"{a.weekday}|{s}-{e}")
+                                else:
+                                    if a.break_start and a.break_end:
+                                        ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-{a.break_start.strftime('%H:%M')}")
+                                        ts_list.append(f"{a.weekday}|{a.break_end.strftime('%H:%M')}-{a.end_time.strftime('%H:%M')}")
+                                    else:
+                                        ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-12:00")
+                                        ts_list.append(f"{a.weekday}|12:00-18:00")
+                                        ts_list.append(f"{a.weekday}|18:00-{a.end_time.strftime('%H:%M')}")
+                        ctx["editar_weekdays_str"] = ",".join(wd_list)
+                        ctx["editar_time_slots_str"] = ",".join(ts_list)
+                    else:
+                        messages.error(request, "CPF não encontrado ou usuário não é profissional.")
+                except get_user_model().DoesNotExist:
+                    messages.error(request, "Nenhum profissional encontrado com este CPF.")
         return render(request, self.template_name, ctx)
 
 
@@ -373,7 +512,7 @@ def convite_cancelar(request, pk):
 
 @login_required
 def profissional_cadastrar(request):
-    """Cadastra um novo profissional (usuário) no painel."""
+    """Step 1: cria usuario (email/senha/tenant/perfil)."""
     if request.method != "POST":
         return redirect("core:painel")
     pode = (
@@ -384,15 +523,26 @@ def profissional_cadastrar(request):
         .exists()
     )
     if not pode:
-        messages.error(request, "Você não tem permissão para cadastrar profissionais.")
+        messages.error(request, "Voce nao tem permissao para cadastrar profissionais.")
         return redirect("core:painel")
-    name = request.POST.get("name", "").strip()
+    email = request.POST.get("email", "").strip()
     tenant_id = request.POST.get("tenant_id", "").strip()
     role = request.POST.get("role", "").strip()
     password = request.POST.get("password", "")
     confirm = request.POST.get("confirm_password", "")
-    if not name or " " not in name:
-        messages.error(request, "Informe o nome e sobrenome do profissional.")
+    cpf = request.POST.get("cpf", "").strip()
+    name = request.POST.get("name", "").strip()
+    phone = request.POST.get("phone", "").strip()
+    request.session["cadastro_data"] = {
+        "email": email,
+        "tenant_id": tenant_id,
+        "role": role,
+        "cpf": cpf,
+        "name": name,
+        "phone": phone,
+    }
+    if not email:
+        messages.error(request, "Informe o email do profissional.")
         return redirect("core:painel")
     if not tenant_id:
         messages.error(request, "Selecione a barbearia.")
@@ -401,15 +551,21 @@ def profissional_cadastrar(request):
         messages.error(request, "Selecione o perfil.")
         return redirect("core:painel")
     if not password or len(password) < 6:
-        messages.error(request, "A senha deve ter no mínimo 6 caracteres.")
+        messages.error(request, "A senha deve ter no minimo 6 caracteres.")
         return redirect("core:painel")
     if password != confirm:
-        messages.error(request, "As senhas não conferem.")
+        messages.error(request, "As senhas nao conferem.")
+        return redirect("core:painel")
+    if not _validar_cpf(cpf):
+        messages.error(request, "CPF invalido.")
+        return redirect("core:painel")
+    if not name or " " not in name:
+        messages.error(request, "Informe o nome e sobrenome do profissional.")
         return redirect("core:painel")
     try:
         tenant_id = int(tenant_id)
     except (ValueError, TypeError):
-        messages.error(request, "Barbearia inválida.")
+        messages.error(request, "Barbearia invalida.")
         return redirect("core:painel")
     from .models import Tenant
     tenant = get_object_or_404(Tenant, pk=tenant_id)
@@ -419,28 +575,163 @@ def profissional_cadastrar(request):
     if request.user.is_superadmin:
         allowed_roles.add("owner")
     if role not in allowed_roles:
-        messages.error(request, "Perfil não permitido.")
+        messages.error(request, "Perfil nao permitido.")
         return redirect("core:painel")
     User = get_user_model()
-    first_name = name.rsplit(" ", 1)[0]
-    last_name = name.rsplit(" ", 1)[1] if " " in name else ""
-    email_base = name.lower().replace(" ", ".") + "@" + tenant.slug + ".local"
-    if User.objects.filter(email=email_base).exists():
-        messages.error(request, "Já existe um usuário com este e-mail gerado.")
+    if User.objects.filter(email=email).exists():
+        messages.error(request, "Ja existe um usuario com este email.")
+        return redirect("core:painel")
+    if User.objects.filter(cpf=cpf).exists():
+        messages.error(request, "CPF ja cadastrado para outro usuario.")
         return redirect("core:painel")
     try:
+        first_name = name.rsplit(" ", 1)[0]
+        last_name = name.rsplit(" ", 1)[1] if " " in name else ""
         user = User.objects.create_user(
-            email=email_base,
+            email=email,
             password=password,
             tenant=tenant,
             role=role,
+            cpf=cpf,
             first_name=first_name,
             last_name=last_name,
+            phone=phone,
             is_active=True,
         )
-        messages.success(request, f"Profissional '{name}' cadastrado com sucesso! E-mail: {email_base}")
+        messages.success(request, "Profissional '{}' cadastrado com sucesso!".format(name))
+        return redirect(reverse("core:painel") + "?completar=" + str(user.pk))
     except Exception as e:
-        messages.error(request, f"Erro ao cadastrar: {e}")
+        messages.error(request, "Erro ao cadastrar: {}".format(e))
+        return redirect("core:painel")
+
+
+@login_required
+def profissional_completar(request):
+    """Step 2: cria Professional e vincula servicos selecionados."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    user_id = request.POST.get("user_id", "").strip()
+    service_ids_raw = request.POST.get("service_ids", "").strip()
+    if not user_id:
+        messages.error(request, "Usuario invalido.")
+        return redirect("core:painel")
+    try:
+        user_id = int(user_id)
+    except (ValueError, TypeError):
+        messages.error(request, "Usuario invalido.")
+        return redirect("core:painel")
+    User = get_user_model()
+    user = get_object_or_404(User, pk=user_id)
+    pode = (
+        request.user.is_superadmin
+        or request.user.role in ("owner", "manager")
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=user.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+        .exists()
+    )
+    if not pode:
+        raise PermissionDenied
+    if not user.tenant_id:
+        messages.error(request, "Usuario sem barbearia vinculada.")
+        return redirect("core:painel")
+    professional, created = Professional.objects.bypass_tenant().get_or_create(
+        tenant_id=user.tenant_id,
+        user=user,
+        defaults={"is_active": True},
+    )
+    if created:
+        messages.success(request, "Profissional vinculado a barbearia.")
+    else:
+        messages.info(request, "Profissional ja existente, servicos atualizados.")
+    if service_ids_raw:
+        service_ids = []
+        for sid in service_ids_raw.split(","):
+            sid = sid.strip()
+            if sid.isdigit():
+                service_ids.append(int(sid))
+        if service_ids:
+            from .models import ProfessionalService, Service
+            valid_services = Service.objects.bypass_tenant().filter(
+                pk__in=service_ids, tenant_id=user.tenant_id
+            )
+            professional.services.remove()
+            for sv in valid_services:
+                ProfessionalService.objects.bypass_tenant().get_or_create(
+                    tenant_id=user.tenant_id,
+                    professional=professional,
+                    service=sv,
+                )
+    else:
+        professional.services.clear()
+    weekdays_raw = request.POST.get("weekdays", "").strip()
+    time_slots_raw = request.POST.get("time_slots", "").strip()
+    from .models import ProfessionalAvailability
+    ProfessionalAvailability.objects.bypass_tenant().filter(
+        professional=professional, tenant_id=user.tenant_id
+    ).update(available=False)
+    if weekdays_raw:
+        for wd in weekdays_raw.split(","):
+            wd = wd.strip()
+            if wd.isdigit():
+                ProfessionalAvailability.objects.bypass_tenant().get_or_create(
+                    tenant_id=user.tenant_id,
+                    professional=professional,
+                    weekday=int(wd),
+                    defaults={"available": True},
+                )
+                ProfessionalAvailability.objects.bypass_tenant().filter(
+                    professional=professional, tenant_id=user.tenant_id, weekday=int(wd)
+                ).update(available=True)
+    if time_slots_raw:
+        slots_by_day = {}
+        for entry in time_slots_raw.split(","):
+            entry = entry.strip()
+            if "|" not in entry or "-" not in entry:
+                continue
+            day_part, range_part = entry.split("|", 1)
+            if "-" not in range_part:
+                continue
+            start_str, end_str = range_part.split("-", 1)
+            if not day_part.isdigit():
+                continue
+            day = int(day_part)
+            slots_by_day.setdefault(day, []).append(
+                (start_str.strip(), end_str.strip())
+            )
+        for day, slots in slots_by_day.items():
+            starts = [datetime.strptime(s[0], "%H:%M").time() for s in slots]
+            ends = [datetime.strptime(s[1], "%H:%M").time() for s in slots]
+            start_time = min(starts)
+            end_time = max(ends)
+            break_start = None
+            break_end = None
+            if len(slots) == 2:
+                sorted_slots = sorted(slots, key=lambda x: x[0])
+                gap_start_str = sorted_slots[0][1]
+                gap_end_str = sorted_slots[1][0]
+                break_start = datetime.strptime(gap_start_str, "%H:%M").time()
+                break_end = datetime.strptime(gap_end_str, "%H:%M").time()
+            pa, _ = ProfessionalAvailability.objects.bypass_tenant().get_or_create(
+                tenant_id=user.tenant_id,
+                professional=professional,
+                weekday=day,
+                defaults={
+                    "available": True,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "break_start": break_start,
+                    "break_end": break_end,
+                },
+            )
+            pa.available = True
+            pa.start_time = start_time
+            pa.end_time = end_time
+            pa.break_start = break_start
+            pa.break_end = break_end
+            pa.save(update_fields=["available", "start_time", "end_time", "break_start", "break_end"])
+    messages.success(request, "Cadastro concluido com sucesso!")
+    request.session.pop("cadastro_data", None)
     return redirect("core:painel")
 
 
@@ -733,6 +1024,69 @@ def sessao_cancelar(request, pk):
 
 
 @login_required
+def servico_criar(request):
+    if request.method != "POST":
+        return redirect("core:painel")
+    name = request.POST.get("name", "").strip()
+    price = request.POST.get("price", "").strip()
+    tenant_id = request.POST.get("tenant_id", "").strip()
+    duration = request.POST.get("duration", "").strip()
+    if not name or not price or not tenant_id or not duration:
+        messages.error(request, "Nome, preco, barbearia e duracao sao obrigatorios.")
+        return redirect("core:painel")
+    try:
+        price = Decimal(price)
+    except Exception:
+        messages.error(request, "Preco invalido.")
+        return redirect("core:painel")
+    try:
+        duration = int(duration)
+    except (ValueError, TypeError):
+        messages.error(request, "Duracao invalida.")
+        return redirect("core:painel")
+    if duration not in dict(Service.DURATION_CHOICES):
+        messages.error(request, "Duracao invalida.")
+        return redirect("core:painel")
+    pode_gerenciar = (
+        request.user.role in ("owner", "manager") or request.user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant_id=tenant_id,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+    if not pode_gerenciar:
+        messages.error(request, "Voce nao tem permissao para criar servicos nesta barbearia.")
+        return redirect("core:painel")
+    Service.objects.bypass_tenant().create(
+        tenant_id=tenant_id, name=name, price=price, duration_minutes=duration,
+    )
+    messages.success(request, "Servico '{}' criado.".format(name))
+    return redirect("core:painel")
+
+
+@login_required
+def servico_toggle_active(request, pk):
+    if request.method != "POST":
+        return redirect("core:painel")
+    serv = get_object_or_404(Service.objects.bypass_tenant(), pk=pk)
+    pode_gerenciar = (
+        request.user.role in ("owner", "manager") or request.user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=serv.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+    if not pode_gerenciar:
+        raise PermissionDenied
+    serv.is_active = not serv.is_active
+    serv.save(update_fields=["is_active"])
+    status = "ativado" if serv.is_active else "inativado"
+    messages.success(request, "Servico '{}' {}.".format(serv.name, status))
+    return redirect("core:painel")
+
+
 def produto_criar(request):
     if request.method != "POST":
         return redirect("core:painel")
@@ -895,4 +1249,133 @@ def pagamento_registrar(request, pk):
         request,
         "Pagamento de R$ {:.2f} registrado para '{}'! Agendamento concluido.".format(amount, sess.client_name),
     )
+    return redirect("core:painel")
+
+
+@login_required
+def profissional_editar(request):
+    """Edita dados, servicos e disponibilidade de um profissional existente."""
+    if request.method != "POST":
+        return redirect("core:painel")
+    professional_id = request.POST.get("professional_id", "").strip()
+    if not professional_id:
+        messages.error(request, "Profissional inválido.")
+        return redirect("core:painel")
+    try:
+        professional_id = int(professional_id)
+    except (ValueError, TypeError):
+        messages.error(request, "Profissional inválido.")
+        return redirect("core:painel")
+    professional = get_object_or_404(
+        Professional.objects.bypass_tenant().select_related("user", "tenant"),
+        pk=professional_id,
+    )
+    pode = (
+        request.user.is_superadmin
+        or request.user.role in ("owner", "manager")
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=professional.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+    if not pode:
+        raise PermissionDenied
+    user = professional.user
+    name = request.POST.get("name", "").strip()
+    phone = request.POST.get("phone", "").strip()
+    if name:
+        first_name = name.rsplit(" ", 1)[0]
+        last_name = name.rsplit(" ", 1)[1] if " " in name else ""
+        user.first_name = first_name
+        user.last_name = last_name
+    if phone:
+        user.phone = phone
+    user.save(update_fields=["first_name", "last_name", "phone"])
+    # Servicos
+    service_ids_raw = request.POST.get("service_ids", "").strip()
+    if service_ids_raw:
+        service_ids = []
+        for sid in service_ids_raw.split(","):
+            sid = sid.strip()
+            if sid.isdigit():
+                service_ids.append(int(sid))
+        if service_ids:
+            valid_services = Service.objects.bypass_tenant().filter(
+                pk__in=service_ids, tenant_id=professional.tenant_id
+            )
+            professional.services.clear()
+            for sv in valid_services:
+                ProfessionalService.objects.bypass_tenant().get_or_create(
+                    tenant_id=professional.tenant_id,
+                    professional=professional,
+                    service=sv,
+                )
+    else:
+        professional.services.clear()
+    # Disponibilidade (mesma logica do profissional_completar)
+    weekdays_raw = request.POST.get("weekdays", "").strip()
+    time_slots_raw = request.POST.get("time_slots", "").strip()
+    ProfessionalAvailability.objects.bypass_tenant().filter(
+        professional=professional, tenant_id=professional.tenant_id
+    ).update(available=False)
+    if weekdays_raw:
+        for wd in weekdays_raw.split(","):
+            wd = wd.strip()
+            if wd.isdigit():
+                ProfessionalAvailability.objects.bypass_tenant().get_or_create(
+                    tenant_id=professional.tenant_id,
+                    professional=professional,
+                    weekday=int(wd),
+                    defaults={"available": True},
+                )
+                ProfessionalAvailability.objects.bypass_tenant().filter(
+                    professional=professional, tenant_id=professional.tenant_id, weekday=int(wd)
+                ).update(available=True)
+    if time_slots_raw:
+        slots_by_day = {}
+        for entry in time_slots_raw.split(","):
+            entry = entry.strip()
+            if "|" not in entry or "-" not in entry:
+                continue
+            day_part, range_part = entry.split("|", 1)
+            if "-" not in range_part:
+                continue
+            start_str, end_str = range_part.split("-", 1)
+            if not day_part.isdigit():
+                continue
+            day = int(day_part)
+            slots_by_day.setdefault(day, []).append((start_str.strip(), end_str.strip()))
+        for day, slots in slots_by_day.items():
+            starts = [datetime.strptime(s[0], "%H:%M").time() for s in slots]
+            ends = [datetime.strptime(s[1], "%H:%M").time() for s in slots]
+            start_time = min(starts)
+            end_time = max(ends)
+            break_start = None
+            break_end = None
+            if len(slots) == 2:
+                sorted_slots = sorted(slots, key=lambda x: x[0])
+                gap_start_str = sorted_slots[0][1]
+                gap_end_str = sorted_slots[1][0]
+                break_start = datetime.strptime(gap_start_str, "%H:%M").time()
+                break_end = datetime.strptime(gap_end_str, "%H:%M").time()
+            pa, _ = ProfessionalAvailability.objects.bypass_tenant().get_or_create(
+                tenant_id=professional.tenant_id,
+                professional=professional,
+                weekday=day,
+                defaults={
+                    "available": True,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "break_start": break_start,
+                    "break_end": break_end,
+                },
+            )
+            pa.available = True
+            pa.start_time = start_time
+            pa.end_time = end_time
+            pa.break_start = break_start
+            pa.break_end = break_end
+            pa.save(update_fields=["available", "start_time", "end_time", "break_start", "break_end"])
+    messages.success(request, f"Profissional '{user.get_full_name() or user.email}' atualizado com sucesso!")
     return redirect("core:painel")

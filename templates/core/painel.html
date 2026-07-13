@@ -100,6 +100,35 @@
     .badge.confirmed { background: rgba(100,170,230,0.15); color: #64AAE6; border:1px solid #64AAE6; }
     .badge.completed { background: rgba(160,208,160,0.15); color: var(--green); border:1px solid var(--green); }
     .badge.paid { background: rgba(160,208,160,0.15); color: var(--green); border:1px solid var(--green); }
+    [data-service-id]:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
+    [data-service-id].selected { background: rgba(200,169,126,0.2) !important; color: var(--gold) !important; border-color: var(--gold) !important; }
+    [data-weekday]:hover { border-color: var(--gold) !important; color: var(--gold) !important; }
+    [data-weekday].selected { background: rgba(200,169,126,0.2) !important; color: var(--gold) !important; border-color: var(--gold) !important; }
+    .time-slot:hover { border-color: var(--gold); color: var(--gold); }
+    .time-slot.selected { background: rgba(200,169,126,0.2) !important; color: var(--gold) !important; border-color: var(--gold) !important; }
+    .time-slot-total:hover { background:rgba(200,169,126,0.08); }
+    .time-slots { display:none; flex-direction:column; gap:3px; padding-top:2px; }
+    .time-slot {
+      font-size:.68rem; padding:.15rem .3rem; border-radius:4px;
+      border:1px solid rgba(200,169,126,0.3); cursor:pointer;
+      color:var(--gray-light); background:transparent;
+      transition:all .2s; height:24px;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none; text-align:center; width:100%;
+    }
+    .time-slot-total {
+      font-size:.65rem; padding:.2rem .3rem; border-radius:4px;
+      border:1px dashed var(--gold); cursor:pointer;
+      color:var(--gold); background:transparent;
+      transition:all .2s; height:24px;
+      display:flex; align-items:center; justify-content:center;
+      user-select:none; text-align:center; width:100%; margin-top:1px;
+      letter-spacing:.08em; text-transform:uppercase;
+    }
+    .time-slot-total.selected {
+      background:rgba(200,169,126,0.2); color:var(--gold);
+      border-style:solid;
+    }
 
     /* Buttons */
     .btn {
@@ -196,6 +225,15 @@
       select[name="payment_method"] { font-size:10px !important; }
     }
   </style>
+  <script>
+  function fmtH(t){return t.endsWith(':00')?t.slice(0,2)+'h':t}
+  function fmtFirst(t){return t.endsWith(':00')?t.slice(0,2):t}
+  function refreshTotalState(c){
+    var sl=c.querySelectorAll('.time-slot'),t=c.querySelector('.time-slot-total');
+    if(!t)return;var a=true;sl.forEach(function(s){if(!s.classList.contains('selected'))a=false});
+    t.classList.toggle('selected',a);
+  }
+  </script>
 </head>
 <body>
   <nav class="nav">
@@ -335,47 +373,154 @@
     {% if pode_convidar %}
     <!-- Cadastro de profissionais -->
     <h2>Cadastro de profissionais</h2>
-    <div class="card">
-      <form method="post" action="{% url 'core:profissional_cadastrar' %}">{% csrf_token %}
-        <div style="display:flex;flex-direction:column;gap:.45rem">
-          <input type="text" name="name" placeholder="Nome completo do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px">
-          <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
-            {% if admin_tenants|length == 1 %}
-              <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:30px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
-              <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
-            {% else %}
-            <div class="custom-select" data-required="true" style="width:100%">
-              <input type="hidden" name="tenant_id" value="">
-              <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
-              <div class="custom-select-options">
-                {% for t in admin_tenants %}
-                  <div data-value="{{ t.id }}">{{ t.name }}</div>
-                {% endfor %}
-              </div>
-            </div>
-            {% endif %}
-            <input type="password" name="password" placeholder="Senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+    <form method="post" action="{% url 'core:profissional_cadastrar' %}" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:1rem">{% csrf_token %}
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
+        {% if admin_tenants|length == 1 %}
+          <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:30px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
+          <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
+        {% else %}
+        <div class="custom-select" data-required="true" style="width:100%">
+          <input type="hidden" name="tenant_id" value="{{ request.session.cadastro_data.tenant_id|default:'' }}">
+          <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
+          <div class="custom-select-options">
+            {% for t in admin_tenants %}
+              <div data-value="{{ t.id }}">{{ t.name }}</div>
+            {% endfor %}
           </div>
-          <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
-            <div class="custom-select" data-required="true" style="width:100%">
-              <input type="hidden" name="role" value="">
-              <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Perfil</button>
-              <div class="custom-select-options">
-                {% if user.is_superadmin %}
-                  <div data-value="owner">Dono</div>
-                {% endif %}
-                {% if user.is_superadmin or user.role == "owner" or user.role == "manager" %}
-                  <div data-value="manager">Gerente</div>
-                {% endif %}
-                <div data-value="professional">Profissional</div>
-              </div>
-            </div>
-            <input type="password" name="confirm_password" placeholder="Confirmar senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
-          </div>
-          <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Cadastrar</button>
         </div>
-      </form>
-    </div>
+        {% endif %}
+        <input type="email" name="email" placeholder="Email do profissional" required value="{{ request.session.cadastro_data.email|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <div class="custom-select" data-required="true" style="width:100%">
+          <input type="hidden" name="role" value="{{ request.session.cadastro_data.role|default:'' }}">
+          <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Perfil</button>
+          <div class="custom-select-options">
+            {% if user.is_superadmin %}
+              <div data-value="owner">Dono</div>
+            {% endif %}
+            {% if user.is_superadmin or user.role == "owner" or user.role == "manager" %}
+              <div data-value="manager">Gerente</div>
+            {% endif %}
+            <div data-value="professional">Profissional</div>
+          </div>
+        </div>
+        <input type="text" name="name" placeholder="Nome completo do profissional" required value="{{ request.session.cadastro_data.name|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <input type="password" name="password" placeholder="Senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <div style="display:flex;gap:.4rem;align-items:center">
+          <input type="text" name="cpf" placeholder="CPF (11 numeros)" required value="{{ request.session.cadastro_data.cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+          <input type="text" name="phone" placeholder="Telefone" value="{{ request.session.cadastro_data.phone|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        </div>
+        <input type="password" name="confirm_password" placeholder="Repetir" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <div style="display:flex">
+          {% if request.GET.completar %}
+          <div style="font-size:.78rem;color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .7rem;border-radius:3px;display:flex;align-items:center;justify-content:center;height:30px;background:var(--black-medium);width:100%">Selecione os servicos</div>
+          {% else %}
+          <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;width:100%">Avancar</button>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+
+    {% if request.GET.completar %}
+    {% with user_id=request.GET.completar %}
+    <form method="post" action="{% url 'core:profissional_completar' %}" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:1rem">{% csrf_token %}
+      <input type="hidden" name="user_id" value="{{ user_id }}">
+      <input type="hidden" name="service_ids" value="" id="service_ids_input">
+      <input type="hidden" name="weekdays" value="" id="weekdays_input">
+      <input type="hidden" name="time_slots" value="" id="time_slots_input">
+      {% if completar_services %}
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+        {% for s in completar_services %}
+        <div data-service-id="{{ s.id }}" onclick="this.classList.toggle('selected');updateCadastro()" style="flex:1 0 auto;font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ s.name }}</div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-accept" onclick="this.style.display='none';document.getElementById('avancar-badge').style.display='flex';document.getElementById('completar-step2').style.display='flex'" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;margin-top:8px;width:100%">Avancar</button>
+      <div id="avancar-badge" style="display:none;font-size:.78rem;color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .7rem;border-radius:3px;align-items:center;justify-content:center;height:30px;background:var(--black-medium);width:100%;margin:8px 0">Selecione a disponibilidade</div>
+      {% endif %}
+      <div id="completar-step2" style="display:none;flex-direction:column;gap:.45rem">
+      {% if completar_weekdays %}
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+        {% for wd, label in completar_weekdays %}
+        <div style="display:flex;flex-direction:column;flex:1 0 auto;gap:4px">
+          <div data-weekday="{{ wd }}" onclick="toggleDay(this)" style="font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ label }}</div>
+          <div class="time-slots" data-weekday="{{ wd }}"></div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;margin-top:8px">Concluir cadastro</button>
+      </div>
+    </form>
+    <script>
+    var bhData = {{ bh_data_json|safe }};
+    function buildSlots(bh, wd){
+      var slots=[];
+      if(bh.break_start&&bh.break_end){
+        slots.push([bh.open, bh.break_start]);
+        slots.push([bh.break_end, bh.close]);
+      }else{
+        slots.push([bh.open, '12:00']);
+        slots.push(['12:00', '18:00']);
+        slots.push(['18:00', bh.close]);
+      }
+      return slots;
+    }
+    function toggleDay(el){
+      el.classList.toggle('selected');
+      var wd=el.getAttribute('data-weekday');
+      var container=el.parentElement.querySelector('.time-slots');
+      if(el.classList.contains('selected')){
+        container.style.display='flex';
+        if(!container.children.length){
+          var bh=bhData[wd];
+          if(bh){
+            var slots=buildSlots(bh,wd);
+            slots.forEach(function(s){
+              var div=document.createElement('div');
+              div.textContent=fmtFirst(s[0])+'-'+fmtH(s[1]);
+              div.dataset.value=wd+'|'+s[0]+'-'+s[1];
+              div.className='time-slot';
+              div.onclick=function(){
+                this.classList.toggle('selected');
+                refreshTotalState(container);
+                updateCadastro();
+              };
+              container.appendChild(div);
+            });
+            var totalDiv=document.createElement('div');
+            totalDiv.textContent='Total';
+            totalDiv.className='time-slot-total';
+            totalDiv.onclick=function(){
+              var sel=this.classList.toggle('selected');
+              container.querySelectorAll('.time-slot').forEach(function(sd){
+                sd.classList.toggle('selected',sel);
+              });
+              updateCadastro();
+            };
+            container.appendChild(totalDiv);
+          }
+        }
+      }else{
+        container.style.display='none';
+        container.querySelectorAll('.time-slot, .time-slot-total').forEach(function(sd){
+          sd.classList.remove('selected');
+        });
+      }
+      updateCadastro();
+    }
+    function updateCadastro(){
+      var serviceIds=[];
+      document.querySelectorAll('[data-service-id].selected').forEach(function(el){serviceIds.push(el.getAttribute('data-service-id'))});
+      document.getElementById('service_ids_input').value=serviceIds.join(',');
+      var wds=[];
+      document.querySelectorAll('[data-weekday].selected').forEach(function(el){wds.push(el.getAttribute('data-weekday'))});
+      document.getElementById('weekdays_input').value=wds.join(',');
+      var ts=[];
+      document.querySelectorAll('.time-slot.selected').forEach(function(el){ts.push(el.dataset.value)});
+      document.getElementById('time_slots_input').value=ts.join(',');
+    }
+    </script>
+    {% endwith %}
+    {% endif %}
     {% endif %}
 
     {% if pode_convidar and all_professionals %}
@@ -394,10 +539,10 @@
             <div style="font-size:.68rem;color:var(--gray-light)">Dias disponíveis: {{ p.available_days }}</div>
             <div style="display:inline-flex;align-items:center;gap:3px">
               <form method="post" action="{% url 'core:profissional_toggle_active' p.pk %}" style="display:inline-flex">{% csrf_token %}
-                <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if not p.is_active %}background:rgba(200,80,80,0.15);color:#e06666;border-color:#e06666{% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Inativo</button>
+                <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if not p.is_active %}background:rgba(232,160,154,0.15);color:var(--red);border-color:var(--red){% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Inativo</button>
               </form>
               <form method="post" action="{% url 'core:profissional_toggle_active' p.pk %}" style="display:inline-flex">{% csrf_token %}
-                <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if p.is_active %}background:rgba(80,200,80,0.15);color:#66e066;border-color:#66e066{% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
+                <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if p.is_active %}background:rgba(160,208,160,0.15);color:var(--green);border-color:var(--green){% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
               </form>
             </div>
           </div>
@@ -405,6 +550,140 @@
       {% endfor %}
     </div>
     {% endif %}
+
+    {% if pode_convidar %}
+    <!-- Edicao de profissionais -->
+    <h2 id="edicao">Edição de profissionais</h2>
+    <form method="get" action="{% url 'core:painel' %}" style="display:flex;gap:.4rem;margin-bottom:1rem" id="form-buscar-cpf">
+      <input type="text" name="buscar_cpf" placeholder="CPF do profissional (11 números)" value="{{ request.GET.buscar_cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;flex:1">
+      <button type="submit" class="btn btn-admin" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;padding:.3rem .8rem;white-space:nowrap">Buscar</button>
+    </form>
+    {% if editar_professional %}
+    <div style="font-size:.78rem;color:var(--gray-light);margin-bottom:.6rem">Editando: <strong style="color:var(--white)">{{ editar_user.get_full_name|default:editar_user.email }}</strong> · {{ editar_professional.tenant.name }}</div>
+    <form id="edit-form" method="post" action="{% url 'core:profissional_editar' %}" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:1rem">{% csrf_token %}
+      <input type="hidden" name="professional_id" value="{{ editar_professional.pk }}">
+      <input type="hidden" name="service_ids" value="{{ editar_selected_service_ids|join:',' }}" id="edit_service_ids_input">
+      <input type="hidden" name="weekdays" value="{{ editar_weekdays_str }}" id="edit_weekdays_input">
+      <input type="hidden" name="time_slots" value="{{ editar_time_slots_str }}" id="edit_time_slots_input">
+      <div style="display:flex;gap:.4rem">
+        <input type="text" name="name" placeholder="Nome completo" value="{{ editar_user.get_full_name }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <input type="text" name="phone" placeholder="Telefone" value="{{ editar_user.phone }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+      </div>
+      {% if editar_services %}
+      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Serviços da barbearia vinculados ao profissional:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+        {% for s in editar_services %}
+        <div data-service-id="{{ s.id }}" onclick="this.classList.toggle('selected');updateEditCadastro()" class="{% if s.id in editar_selected_service_ids %}selected {% endif %}" style="flex:1 0 auto;font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ s.name }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if editar_weekdays %}
+      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Vínculo de disponibilidade do profissional na barbearia:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem">
+        {% for wd, label in editar_weekdays %}
+        <div style="display:flex;flex-direction:column;flex:1 0 auto;gap:4px">
+          <div data-weekday="{{ wd }}" onclick="toggleEditDay(this)" style="font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ label }}</div>
+          <div class="time-slots" data-weekday="{{ wd }}"></div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <button type="submit" class="btn btn-admin" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;margin-top:4px">Salvar alterações</button>
+    </form>
+    <script>
+    var editBhData = {{ editar_bh_data_json|safe }};
+    function toggleEditDay(el){
+      el.classList.toggle('selected');
+      var wd=el.getAttribute('data-weekday');
+      var container=el.parentElement.querySelector('.time-slots');
+      if(el.classList.contains('selected')){
+        container.style.display='flex';
+        if(!container.children.length){
+          var bh=editBhData[wd];
+          if(bh){
+            var slots=[];
+            if(bh.break_start&&bh.break_end){
+              slots.push([bh.open, bh.break_start]);
+              slots.push([bh.break_end, bh.close]);
+            }else{
+              slots.push([bh.open, '12:00']);
+              slots.push(['12:00', '18:00']);
+              slots.push(['18:00', bh.close]);
+            }
+            slots.forEach(function(s){
+              var div=document.createElement('div');
+              div.textContent=fmtFirst(s[0])+'-'+fmtH(s[1]);
+              div.dataset.value=wd+'|'+s[0]+'-'+s[1];
+              div.className='time-slot';
+              div.onclick=function(){
+                this.classList.toggle('selected');
+                refreshTotalState(container);
+                updateEditCadastro();
+              };
+              container.appendChild(div);
+            });
+            var totalDiv=document.createElement('div');
+            totalDiv.textContent='Total';
+            totalDiv.className='time-slot-total';
+            totalDiv.onclick=function(){
+              var sel=this.classList.toggle('selected');
+              container.querySelectorAll('.time-slot').forEach(function(sd){
+                sd.classList.toggle('selected',sel);
+              });
+              updateEditCadastro();
+            };
+            container.appendChild(totalDiv);
+          }
+        }
+      }else{
+        container.style.display='none';
+        container.querySelectorAll('.time-slot, .time-slot-total').forEach(function(sd){
+          sd.classList.remove('selected');
+        });
+      }
+      updateEditCadastro();
+    }
+    function updateEditCadastro(){
+      var serviceIds=[];
+      document.querySelectorAll('#edit-form [data-service-id].selected').forEach(function(el){serviceIds.push(el.getAttribute('data-service-id'))});
+      document.getElementById('edit_service_ids_input').value=serviceIds.join(',');
+      var wds=[];
+      document.querySelectorAll('#edit-form [data-weekday].selected').forEach(function(el){wds.push(el.getAttribute('data-weekday'))});
+      document.getElementById('edit_weekdays_input').value=wds.join(',');
+      var ts=[];
+      document.querySelectorAll('#edit-form .time-slot.selected').forEach(function(el){ts.push(el.dataset.value)});
+      document.getElementById('edit_time_slots_input').value=ts.join(',');
+    }
+    initEditData();
+    function initEditData(){
+      var wds=(document.getElementById('edit_weekdays_input').value||'').split(',').filter(Boolean);
+      var ts=(document.getElementById('edit_time_slots_input').value||'').split(',').filter(Boolean);
+      wds.forEach(function(wd){
+        var badge=document.querySelector('#edit-form [data-weekday="'+wd+'"]');
+        if(badge&&!badge.classList.contains('selected')) badge.click();
+      });
+      ts.forEach(function(slotVal){
+        var parts=slotVal.split('|');
+        var sd=document.querySelector('#edit-form .time-slots[data-weekday="'+parts[0]+'"] .time-slot[data-value="'+slotVal+'"]');
+        if(sd&&!sd.classList.contains('selected')) sd.click();
+      });
+    }
+    </script>
+    {% endif %}
+    {% endif %}
+
+    <script>
+    document.getElementById('form-buscar-cpf')?.addEventListener('submit',function(){
+      sessionStorage.setItem('scrollPos',window.scrollY);
+    });
+    (function(){
+      var pos=sessionStorage.getItem('scrollPos');
+      if(pos&&location.href.indexOf('buscar_cpf')>-1){
+        sessionStorage.removeItem('scrollPos');
+        window.scrollTo(0,parseInt(pos));
+      }
+    })();
+    </script>
 
     <!-- Agendamentos -->
     <h2>Agendamentos</h2>
@@ -640,10 +919,10 @@
               <a href="{% url 'core:produto_movimentacoes' prod.id %}" title="Visualizar as movimentações" style="font-size:.62rem;color:var(--gold);border:1px solid var(--gold);padding:.1rem .5rem;border-radius:999px;text-decoration:none;height:18px;display:inline-flex;align-items:center">Movimentações</a>
               <div style="display:inline-flex;align-items:center;gap:3px">
                 <form method="post" action="{% url 'core:produto_toggle_active' prod.id %}" style="display:inline-flex">{% csrf_token %}
-                  <button type="submit" title="Inativar produto" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if prod.is_active %}background:transparent;color:var(--gray);border-color:var(--gray){% else %}background:rgba(200,80,80,0.15);color:#e06666;border-color:#e06666{% endif %}">Inativo</button>
+                  <button type="submit" title="Inativar produto" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if prod.is_active %}background:transparent;color:var(--gray);border-color:var(--gray){% else %}background:rgba(232,160,154,0.15);color:var(--red);border-color:var(--red){% endif %}">Inativo</button>
                 </form>
                 <form method="post" action="{% url 'core:produto_toggle_active' prod.id %}" style="display:inline-flex">{% csrf_token %}
-                  <button type="submit" title="Ativar produto" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if prod.is_active %}background:rgba(80,200,80,0.15);color:#66e066;border-color:#66e066{% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
+                  <button type="submit" title="Ativar produto" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if prod.is_active %}background:rgba(160,208,160,0.15);color:var(--green);border-color:var(--green){% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
                 </form>
               </div>
               {% endif %}
@@ -653,6 +932,68 @@
       </div>
     {% else %}
       <p class="empty">Nenhum produto cadastrado.</p>
+    {% endif %}
+
+    <!-- Servicos -->
+    {% if pode_convidar %}
+    <h2>Servicos da barbearia</h2>
+    <div style="margin-bottom:1rem">
+      <form method="post" action="{% url 'core:servico_criar' %}" style="display:flex;flex-direction:column;gap:.45rem">{% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
+          <div class="custom-select" data-required="true" style="width:100%">
+            <input type="hidden" name="tenant_id" value="">
+            <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
+            <div class="custom-select-options">
+              {% for t in admin_tenants %}
+                <div data-value="{{ t.id }}">{{ t.name }}</div>
+              {% endfor %}
+            </div>
+          </div>
+          <input type="text" name="name" placeholder="Nome do servico" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
+          <div class="custom-select" data-required="true" style="width:100%">
+            <input type="hidden" name="duration" value="">
+            <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Duracao</button>
+            <div class="custom-select-options">
+              <div data-value="30">30 minutos</div>
+              <div data-value="60">60 minutos</div>
+              <div data-value="90">90 minutos</div>
+              <div data-value="120">120 minutos</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:.4rem;align-items:center">
+            <input type="text" name="price" placeholder="Valor" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+            <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;white-space:nowrap;border-radius:3px">Criar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+    {% if all_services %}
+      <div class="card" style="padding:.6rem .8rem;margin-bottom:1rem">
+        {% for s in all_services %}
+          <div style="display:grid;grid-template-columns:1fr auto;gap:1rem .8rem;{% if not forloop.last %}border-bottom:1px solid rgba(200,169,126,0.08);padding-bottom:.6rem;margin-bottom:.6rem{% endif %}">
+            <div style="display:flex;flex-direction:column;gap:3px;justify-content:center">
+              <div style="font-size:.75rem;font-weight:600">{{ s.name }}</div>
+              <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg> {{ s.tenant.name }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px;justify-content:center;align-items:flex-end">
+              <div style="font-size:.72rem;color:var(--gold)">R$ {{ s.price|floatformat:2 }} <span style="color:var(--gray-light)">({{ s.get_duration_minutes_display }})</span></div>
+              <div style="display:inline-flex;align-items:center;gap:3px">
+                <form method="post" action="{% url 'core:servico_toggle_active' s.pk %}" style="display:inline-flex">{% csrf_token %}
+                  <button type="submit" title="Inativar servico" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if s.is_active %}background:transparent;color:var(--gray);border-color:var(--gray){% else %}background:rgba(232,160,154,0.15);color:var(--red);border-color:var(--red){% endif %}">Inativo</button>
+                </form>
+                <form method="post" action="{% url 'core:servico_toggle_active' s.pk %}" style="display:inline-flex">{% csrf_token %}
+                  <button type="submit" title="Ativar servico" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if s.is_active %}background:rgba(160,208,160,0.15);color:var(--green);border-color:var(--green){% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      {% if pode_convidar %}<p class="empty">Nenhum servico cadastrado.</p>{% endif %}
     {% endif %}
 
     <div class="grid-2" style="gap:2rem;align-items:start;margin-top:43px">
@@ -760,6 +1101,21 @@
     });
     document.addEventListener('click', function() {
       document.querySelectorAll('.custom-select.open').forEach(function(c) { c.classList.remove('open'); });
+    });
+
+    // Restore custom select values from hidden inputs (form persistence)
+    document.querySelectorAll('.custom-select').forEach(function(container) {
+      var input = container.querySelector('input[type=hidden]');
+      if (input && input.value) {
+        var opts = container.querySelectorAll('.custom-select-options div');
+        opts.forEach(function(o) {
+          if (o.getAttribute('data-value') === input.value) {
+            var trigger = container.querySelector('.custom-select-trigger');
+            trigger.childNodes[0].textContent = o.textContent;
+            o.classList.add('selected');
+          }
+        });
+      }
     });
 
     function confirmarPagamento(form) {

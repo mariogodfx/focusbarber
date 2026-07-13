@@ -5,6 +5,7 @@ Login por e-mail (prepara Sprint 3: "login email funcionando") + campo `role`
 com os perfis do produto. `tenant` (FK) será adicionado no Sprint 2 (Multi-Tenant).
 """
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -50,6 +51,7 @@ class User(AbstractUser):
     # E-mail como identificador de login.
     username = None
     email = models.EmailField(_("e-mail"), unique=True)
+    cpf = models.CharField(_("CPF"), max_length=11, unique=True, null=True, blank=True, validators=[MinLengthValidator(11), MaxLengthValidator(11)])
     phone = models.CharField(_("telefone"), max_length=20, blank=True)
     role = models.CharField(
         _("perfil"),

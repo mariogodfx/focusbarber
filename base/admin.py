@@ -20,15 +20,15 @@ class CustomUserAdmin(UserAdmin):
       - Ao criar, o tenant é limitado/forçado ao do usuário logado (não-superadmin).
     """
     ordering = ("email",)
-    list_display = ("email", "role", "tenant", "is_staff", "is_superuser", "is_active")
+    list_display = ("email", "role", "cpf", "tenant", "is_staff", "is_superuser", "is_active")
     list_filter = ("role", "is_staff", "is_superuser", "is_active")
-    search_fields = ("email", "phone")
+    search_fields = ("email", "cpf", "phone")
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         (
             _("Dados pessoais"),
-            {"fields": ("first_name", "last_name", "phone", "role", "tenant")},
+            {"fields": ("first_name", "last_name", "cpf", "phone", "role", "tenant")},
         ),
         (
             _("Permissões"),
@@ -49,7 +49,7 @@ class CustomUserAdmin(UserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "role", "tenant", "password1", "password2"),
+                "fields": ("email", "cpf", "role", "tenant", "password1", "password2"),
             },
         ),
     )
