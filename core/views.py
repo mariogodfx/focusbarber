@@ -7,6 +7,7 @@ Rotas:
   - /painel/convite/<pk>/cancelar/    -> cancelar convite (POST)
 """
 import json
+import re
 from datetime import datetime
 from decimal import Decimal
 
@@ -41,7 +42,8 @@ from .models import (
 
 def _validar_cpf(cpf):
     """Valida CPF: 11 digitos, nao todos iguais, digitos verificadores ok."""
-    if not cpf or len(cpf) != 11 or not cpf.isdigit():
+    cpf = re.sub(r"\D", "", cpf or "")
+    if not cpf or len(cpf) != 11:
         return False
     if cpf == cpf[0] * 11:
         return False
@@ -189,10 +191,13 @@ def _professional_dashboard_context(user):
         all_professionals = []
         for p in prof_qs:
             available_days = sum(1 for a in p.availability.all() if a.available)
+            cpf_raw = p.user.cpf or ""
+            cpf_fmt = f"{cpf_raw[:3]}.{cpf_raw[3:6]}.{cpf_raw[6:9]}-{cpf_raw[9:]}" if len(cpf_raw) == 11 else cpf_raw
             all_professionals.append({
                 "pk": p.pk,
                 "name": p.user.get_full_name() or p.user.email,
                 "email": p.user.email,
+                "cpf": cpf_fmt,
                 "tenant": p.tenant.name,
                 "services_count": p.services.all().count(),
                 "available_days": available_days,
@@ -310,9 +315,22 @@ class PainelProfissionalView(View):
             if not pode_editar:
                 messages.error(request, "Você não tem permissão para editar profissionais.")
             else:
+                buscar_cpf = re.sub(r"\D", "", buscar_cpf)
                 try:
                     user = get_user_model().objects.get(cpf=buscar_cpf)
-                    prof = Professional.objects.bypass_tenant().filter(user=user).select_related("user", "tenant").first()
+                    admin_tenant_ids = set(
+                        TenantMembership.objects.bypass_tenant()
+                        .filter(user=request.user, role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER], is_active=True)
+                        .values_list("tenant_id", flat=True)
+                    )
+                    if request.user.role == "owner" and request.user.tenant_id:
+                        admin_tenant_ids.add(request.user.tenant_id)
+                    if request.user.is_superadmin:
+                        from .models import Tenant
+                        admin_tenant_ids = set(Tenant.objects.values_list("id", flat=True))
+                    prof = Professional.objects.bypass_tenant().filter(
+                        user=user, tenant_id__in=admin_tenant_ids
+                    ).select_related("user", "tenant").first()
                     if prof:
                         ctx["editar_professional"] = prof
                         ctx["editar_user"] = user
@@ -344,29 +362,35 @@ class PainelProfissionalView(View):
                                 wd_list.append(str(a.weekday))
                                 bh = bh_data.get(a.weekday)
                                 if bh:
-                                    pro_start = a.start_time
-                                    pro_end = a.end_time
-                                    if "break_start" in bh and "break_end" in bh:
-                                        slot_defs = [(bh['open'], bh['break_start']), (bh['break_end'], bh['close'])]
+                                    if a.break_start and a.break_end:
+                                        ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-{a.break_start.strftime('%H:%M')}")
+                                        ts_list.append(f"{a.weekday}|{a.break_end.strftime('%H:%M')}-{a.end_time.strftime('%H:%M')}")
                                     else:
-                                        slot_defs = [(bh['open'], '12:00'), ('12:00', '18:00'), ('18:00', bh['close'])]
-                                    for s, e in slot_defs:
-                                        s_t = datetime.strptime(s, '%H:%M').time()
-                                        e_t = datetime.strptime(e, '%H:%M').time()
-                                        if pro_start <= s_t and pro_end >= e_t:
-                                            ts_list.append(f"{a.weekday}|{s}-{e}")
+                                        ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-{a.end_time.strftime('%H:%M')}")
                                 else:
                                     if a.break_start and a.break_end:
                                         ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-{a.break_start.strftime('%H:%M')}")
                                         ts_list.append(f"{a.weekday}|{a.break_end.strftime('%H:%M')}-{a.end_time.strftime('%H:%M')}")
                                     else:
-                                        ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-12:00")
-                                        ts_list.append(f"{a.weekday}|12:00-18:00")
-                                        ts_list.append(f"{a.weekday}|18:00-{a.end_time.strftime('%H:%M')}")
+                                        ts_list.append(f"{a.weekday}|{a.start_time.strftime('%H:%M')}-{a.end_time.strftime('%H:%M')}")
                         ctx["editar_weekdays_str"] = ",".join(wd_list)
                         ctx["editar_time_slots_str"] = ",".join(ts_list)
+                        all_avail = ProfessionalAvailability.objects.bypass_tenant().filter(
+                            professional__user=user, available=True
+                        ).select_related("professional__tenant").exclude(professional__tenant=prof.tenant)
+                        avail_conflicts = {}
+                        for a in all_avail:
+                            day_key = str(a.weekday)
+                            avail_conflicts.setdefault(day_key, []).append({
+                                "tenant": a.professional.tenant.name,
+                                "start": a.start_time.strftime("%H:%M"),
+                                "end": a.end_time.strftime("%H:%M"),
+                                "break_start": a.break_start.strftime("%H:%M") if a.break_start else None,
+                                "break_end": a.break_end.strftime("%H:%M") if a.break_end else None,
+                            })
+                        ctx["editar_avail_conflicts_json"] = json.dumps(avail_conflicts)
                     else:
-                        messages.error(request, "CPF não encontrado ou usuário não é profissional.")
+                        messages.error(request, "Este profissional não possui vínculo em nenhuma das suas barbearias.")
                 except get_user_model().DoesNotExist:
                     messages.error(request, "Nenhum profissional encontrado com este CPF.")
         return render(request, self.template_name, ctx)
@@ -530,7 +554,7 @@ def profissional_cadastrar(request):
     role = request.POST.get("role", "").strip()
     password = request.POST.get("password", "")
     confirm = request.POST.get("confirm_password", "")
-    cpf = request.POST.get("cpf", "").strip()
+    cpf = re.sub(r"\D", "", request.POST.get("cpf", "").strip())
     name = request.POST.get("name", "").strip()
     phone = request.POST.get("phone", "").strip()
     request.session["cadastro_data"] = {
@@ -683,6 +707,7 @@ def profissional_completar(request):
                 ProfessionalAvailability.objects.bypass_tenant().filter(
                     professional=professional, tenant_id=user.tenant_id, weekday=int(wd)
                 ).update(available=True)
+    teve_erro = False
     if time_slots_raw:
         slots_by_day = {}
         for entry in time_slots_raw.split(","):
@@ -729,8 +754,17 @@ def profissional_completar(request):
             pa.end_time = end_time
             pa.break_start = break_start
             pa.break_end = break_end
-            pa.save(update_fields=["available", "start_time", "end_time", "break_start", "break_end"])
-    messages.success(request, "Cadastro concluido com sucesso!")
+            try:
+                pa.full_clean(exclude=["tenant", "professional"])
+                pa.save(update_fields=["available", "start_time", "end_time", "break_start", "break_end"])
+            except ValidationError as e:
+                pa.available = False
+                pa.save(update_fields=["available"])
+                wd_map = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
+                messages.error(request, f"Disponibilidade ({wd_map[day]}): {'; '.join(e.messages)}")
+                teve_erro = True
+    if not teve_erro:
+        messages.success(request, "Cadastro concluido com sucesso!")
     request.session.pop("cadastro_data", None)
     return redirect("core:painel")
 
@@ -1280,7 +1314,8 @@ def profissional_editar(request):
         .exists()
     )
     if not pode:
-        raise PermissionDenied
+        messages.error(request, "Não é possível alterar dados de outra barbearia na qual não possui vínculo de dono.")
+        return redirect("core:painel")
     user = professional.user
     name = request.POST.get("name", "").strip()
     phone = request.POST.get("phone", "").strip()
@@ -1332,6 +1367,7 @@ def profissional_editar(request):
                 ProfessionalAvailability.objects.bypass_tenant().filter(
                     professional=professional, tenant_id=professional.tenant_id, weekday=int(wd)
                 ).update(available=True)
+    teve_erro = False
     if time_slots_raw:
         slots_by_day = {}
         for entry in time_slots_raw.split(","):
@@ -1376,6 +1412,15 @@ def profissional_editar(request):
             pa.end_time = end_time
             pa.break_start = break_start
             pa.break_end = break_end
-            pa.save(update_fields=["available", "start_time", "end_time", "break_start", "break_end"])
-    messages.success(request, f"Profissional '{user.get_full_name() or user.email}' atualizado com sucesso!")
+            try:
+                pa.full_clean(exclude=["tenant", "professional"])
+                pa.save(update_fields=["available", "start_time", "end_time", "break_start", "break_end"])
+            except ValidationError as e:
+                pa.available = False
+                pa.save(update_fields=["available"])
+                wd_map = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"]
+                messages.error(request, f"Disponibilidade ({wd_map[day]}): {'; '.join(e.messages)}")
+                teve_erro = True
+    if not teve_erro:
+        messages.success(request, f"Profissional '{user.get_full_name() or user.email}' atualizado com sucesso!")
     return redirect("core:painel")

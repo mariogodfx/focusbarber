@@ -264,24 +264,28 @@
       {% if sent_invitations %}
         {% for inv in sent_invitations %}
           <div class="card">
-            <div class="header">
+            <div class="header" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;border-bottom:1px dotted #2a2a2a">
               <div>
                 <span class="tenant-name">{{ inv.tenant.name }}</span>
                 <span class="badge {{ inv.status }}" style="margin-left:5px">{{ inv.get_status_display }}</span>
               </div>
             </div>
-            <div class="meta">
-              {% if inv.invited_by != user %}<div style="margin-bottom:3px"><span style="color:var(--gold)">De:</span> {{ inv.invited_by.email }}</div>{% endif %}
-              <div style="margin-bottom:3px"><span style="color:var(--gold)">Para:</span> {{ inv.professional_user.email }}</div>
-              <div><span style="color:var(--gold)">Em:</span> {{ inv.created_at|date:"d/m/y" }}{% if inv.responded_at %} &middot; <span style="color:var(--gold)">Respondido dia:</span> {{ inv.responded_at|date:"d/m/y" }}{% endif %}</div>
-            </div>
-            {% if inv.status == "pending" %}
-              <div class="actions">
-                <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-cancel">Cancelar convite</button>
-                </form>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center">
+              <div>
+                <div class="meta" style="display:flex;flex-direction:column;gap:2px">
+                  {% if inv.invited_by != user %}<div><span style="color:var(--gold)">De:</span> {{ inv.invited_by.email }}</div>{% endif %}
+                  <div><span style="color:var(--gold)">Para:</span> {{ inv.professional_user.email }}</div>
+                  <div><span style="color:var(--gold)">Em:</span> {{ inv.created_at|date:"d/m/y" }}{% if inv.responded_at %} · <span style="color:var(--gold)">Resp:</span> {{ inv.responded_at|date:"d/m/y" }}{% endif %}</div>
+                </div>
               </div>
-            {% endif %}
+              {% if inv.status == "pending" %}
+                <div style="display:flex;align-items:center;gap:.3rem">
+                  <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Cancelar" style="background:none;border:none;cursor:pointer;color:var(--red);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
           </div>
         {% endfor %}
       {% else %}
@@ -311,27 +315,31 @@
       {% if invitations %}
         {% for inv in invitations %}
           <div class="card">
-            <div class="header">
+            <div class="header" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;border-bottom:1px dotted #2a2a2a">
               <span class="tenant-name">{{ inv.tenant.name }}</span>
               <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
             </div>
-            <div class="meta">
-              Convidado por {{ inv.invited_by.email }} em {{ inv.created_at|date:"d/m/Y" }}
-              {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
-            </div>
-            {% if inv.status == "pending" %}
-              <div class="actions">
-                <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-accept">Aceitar</button>
-                </form>
-                <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-reject">Rejeitar</button>
-                </form>
-                <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-cancel">Cancelar</button>
-                </form>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center">
+              <div>
+                <div class="meta" style="display:flex;flex-direction:column;gap:2px">
+                  <div><span style="color:var(--gold)">Por:</span> {{ inv.invited_by.email }}</div>
+                  <div><span style="color:var(--gold)">Em:</span> {{ inv.created_at|date:"d/m/y" }}{% if inv.responded_at %} · <span style="color:var(--gold)">Resp:</span> {{ inv.responded_at|date:"d/m/y" }}{% endif %}</div>
+                </div>
               </div>
-            {% endif %}
+              {% if inv.status == "pending" %}
+                <div style="display:flex;align-items:center;gap:.3rem">
+                  <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Aceitar" style="background:none;border:none;cursor:pointer;color:var(--green);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></button>
+                  </form>
+                  <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Rejeitar" style="background:none;border:none;cursor:pointer;color:var(--red);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></button>
+                  </form>
+                  <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Cancelar" style="background:none;border:none;cursor:pointer;color:var(--red);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
           </div>
         {% endfor %}
       {% else %}
@@ -342,27 +350,31 @@
       {% if invitations %}
         {% for inv in invitations %}
           <div class="card">
-            <div class="header">
+            <div class="header" style="display:flex;align-items:center;gap:8px;justify-content:flex-start;border-bottom:1px dotted #2a2a2a">
               <span class="tenant-name">{{ inv.tenant.name }}</span>
               <span class="badge {{ inv.status }}">{{ inv.get_status_display }}</span>
             </div>
-            <div class="meta">
-              Convidado por {{ inv.invited_by.email }} em {{ inv.created_at|date:"d/m/Y" }}
-              {% if inv.responded_at %} · Respondido em {{ inv.responded_at|date:"d/m/Y H:i" }}{% endif %}
-            </div>
-            {% if inv.status == "pending" %}
-              <div class="actions">
-                <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-accept">Aceitar</button>
-                </form>
-                <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-reject">Rejeitar</button>
-                </form>
-                <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
-                  <button type="submit" class="btn btn-cancel">Cancelar</button>
-                </form>
+            <div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center">
+              <div>
+                <div class="meta" style="display:flex;flex-direction:column;gap:2px">
+                  <div><span style="color:var(--gold)">Por:</span> {{ inv.invited_by.email }}</div>
+                  <div><span style="color:var(--gold)">Em:</span> {{ inv.created_at|date:"d/m/y" }}{% if inv.responded_at %} · <span style="color:var(--gold)">Resp:</span> {{ inv.responded_at|date:"d/m/y" }}{% endif %}</div>
+                </div>
               </div>
-            {% endif %}
+              {% if inv.status == "pending" %}
+                <div style="display:flex;align-items:center;gap:.3rem">
+                  <form method="post" action="{% url 'core:convite_aceitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Aceitar" style="background:none;border:none;cursor:pointer;color:var(--green);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></button>
+                  </form>
+                  <form method="post" action="{% url 'core:convite_rejeitar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Rejeitar" style="background:none;border:none;cursor:pointer;color:var(--red);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></button>
+                  </form>
+                  <form method="post" action="{% url 'core:convite_cancelar' inv.pk %}" style="display:inline">{% csrf_token %}
+                    <button type="submit" title="Cancelar" style="background:none;border:none;cursor:pointer;color:var(--red);padding:4px;display:inline-flex;align-items:center;transition:opacity .3s" onmouseover="this.style.opacity='.6'" onmouseout="this.style.opacity='1'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                  </form>
+                </div>
+              {% endif %}
+            </div>
           </div>
         {% endfor %}
       {% else %}
@@ -406,7 +418,7 @@
         <input type="text" name="name" placeholder="Nome completo do profissional" required value="{{ request.session.cadastro_data.name|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         <input type="password" name="password" placeholder="Senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         <div style="display:flex;gap:.4rem;align-items:center">
-          <input type="text" name="cpf" placeholder="CPF (11 numeros)" required value="{{ request.session.cadastro_data.cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+          <input type="text" name="cpf" placeholder="CPF (000.000.000-00)" required value="{{ request.session.cadastro_data.cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
           <input type="text" name="phone" placeholder="Telefone" value="{{ request.session.cadastro_data.phone|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         </div>
         <input type="password" name="confirm_password" placeholder="Repetir" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
@@ -438,11 +450,12 @@
       {% endif %}
       <div id="completar-step2" style="display:none;flex-direction:column;gap:.45rem">
       {% if completar_weekdays %}
+      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Clique em "Definir" para definir a disponibilidade do profissional</div>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem">
         {% for wd, label in completar_weekdays %}
-        <div style="display:flex;flex-direction:column;flex:1 0 auto;gap:4px">
-          <div data-weekday="{{ wd }}" onclick="toggleDay(this)" style="font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ label }}</div>
-          <div class="time-slots" data-weekday="{{ wd }}"></div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1 0 auto;min-width:0">
+          <div style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid var(--gold);color:var(--gold);background:rgba(200,169,126,0.2);min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">{{ label }}</div>
+          <div data-weekday="{{ wd }}" onclick="openCompletarAvailModal('{{ wd }}')" style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">Definir</div>
         </div>
         {% endfor %}
       </div>
@@ -450,72 +463,130 @@
       <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;margin-top:8px">Concluir cadastro</button>
       </div>
     </form>
+    <!-- Modal disponibilidade (completar) -->
+    <div id="completar-avail-modal" class="comanda-overlay">
+      <div class="comanda-modal" style="max-width:340px">
+        <div style="margin-bottom:.6rem;font-size:.85rem;font-weight:600">Definir disponibilidade</div>
+        <div id="completar-avail-bh-info" style="font-size:.65rem;color:var(--gray);margin-bottom:.6rem;line-height:1.5;white-space:pre-wrap"></div>
+        <input type="hidden" id="completar-avail-modal-day">
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <div>
+            <label style="font-size:.65rem;color:var(--gray-light);display:block;margin-bottom:.2rem">Início do expediente</label>
+            <input type="time" id="completar-avail-start" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:.65rem;color:var(--gray-light);display:block;margin-bottom:.2rem">Fim do expediente</label>
+            <input type="time" id="completar-avail-end" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+          </div>
+          <hr style="border:none;border-top:1px solid rgba(200,169,126,0.15);margin:.2rem 0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+            <div>
+              <label style="font-size:.65rem;color:var(--gray-light);display:block">Início do intervalo</label>
+              <div style="font-size:.58rem;color:var(--gray);margin-bottom:.15rem">(opcional)</div>
+              <input type="time" id="completar-avail-break-start" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:.65rem;color:var(--gray-light);display:block">Fim do intervalo</label>
+              <div style="font-size:.58rem;color:var(--gray);margin-bottom:.15rem">(opcional)</div>
+              <input type="time" id="completar-avail-break-end" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.4rem;margin-top:.6rem">
+          <button type="button" onclick="closeCompletarAvailModal()" class="btn btn-cancel" style="flex:1;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Cancelar</button>
+          <button type="button" onclick="saveCompletarAvail()" class="btn btn-accept" style="flex:1;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Salvar</button>
+        </div>
+      </div>
+    </div>
     <script>
-    var bhData = {{ bh_data_json|safe }};
-    function buildSlots(bh, wd){
-      var slots=[];
-      if(bh.break_start&&bh.break_end){
-        slots.push([bh.open, bh.break_start]);
-        slots.push([bh.break_end, bh.close]);
-      }else{
-        slots.push([bh.open, '12:00']);
-        slots.push(['12:00', '18:00']);
-        slots.push(['18:00', bh.close]);
+    var completarBhData = {{ bh_data_json|safe }};
+    var completarAvailData = {};
+
+    function openCompletarAvailModal(wd){
+      var d=completarAvailData[wd]||{};
+      var bh=completarBhData[wd];
+      var preencher = bh && !d.start;
+      document.getElementById('completar-avail-modal-day').value=wd;
+      document.getElementById('completar-avail-start').value=d.start||(preencher?bh.open:'');
+      document.getElementById('completar-avail-end').value=d.end||(preencher?bh.close:'');
+      document.getElementById('completar-avail-break-start').value=d.break_start||(preencher?(bh.break_start||''):'');
+      document.getElementById('completar-avail-break-end').value=d.break_end||(preencher?(bh.break_end||''):'');
+      var info='';
+      if(bh){
+        info='Barbearia: '+fmtFirst(bh.open)+' às '+fmtH(bh.close);
+        if(bh.break_start&&bh.break_end) info+=' (intervalo '+fmtFirst(bh.break_start)+'-'+fmtH(bh.break_end)+')';
       }
-      return slots;
+      document.getElementById('completar-avail-bh-info').textContent=info;
+      document.getElementById('completar-avail-modal').classList.add('active');
     }
-    function toggleDay(el){
-      el.classList.toggle('selected');
-      var wd=el.getAttribute('data-weekday');
-      var container=el.parentElement.querySelector('.time-slots');
-      if(el.classList.contains('selected')){
-        container.style.display='flex';
-        if(!container.children.length){
-          var bh=bhData[wd];
-          if(bh){
-            var slots=buildSlots(bh,wd);
-            slots.forEach(function(s){
-              var div=document.createElement('div');
-              div.textContent=fmtFirst(s[0])+'-'+fmtH(s[1]);
-              div.dataset.value=wd+'|'+s[0]+'-'+s[1];
-              div.className='time-slot';
-              div.onclick=function(){
-                this.classList.toggle('selected');
-                refreshTotalState(container);
-                updateCadastro();
-              };
-              container.appendChild(div);
-            });
-            var totalDiv=document.createElement('div');
-            totalDiv.textContent='Total';
-            totalDiv.className='time-slot-total';
-            totalDiv.onclick=function(){
-              var sel=this.classList.toggle('selected');
-              container.querySelectorAll('.time-slot').forEach(function(sd){
-                sd.classList.toggle('selected',sel);
-              });
-              updateCadastro();
-            };
-            container.appendChild(totalDiv);
+
+    function closeCompletarAvailModal(){
+      document.getElementById('completar-avail-modal').classList.remove('active');
+    }
+
+    function saveCompletarAvail(){
+      var wd=document.getElementById('completar-avail-modal-day').value;
+      var start=document.getElementById('completar-avail-start').value;
+      var end=document.getElementById('completar-avail-end').value;
+      var bs=document.getElementById('completar-avail-break-start').value;
+      var be=document.getElementById('completar-avail-break-end').value;
+
+      if(!start||!end){alert('Informe início e fim do expediente.');return;}
+      if(start>=end){alert('O fim do expediente deve ser maior que o início.');return;}
+      if((bs&&!be)||(!bs&&be)){alert('Informe início e fim do intervalo, ou deixe ambos vazios.');return;}
+      if(bs&&be){
+        if(be<=bs){alert('O fim do intervalo deve ser maior que o início.');return;}
+        if(bs<start||be>end){alert('O intervalo precisa estar dentro do expediente.');return;}
+      }
+
+      var bh=completarBhData[wd];
+      if(bh){
+        if(start<bh.open){alert('Início ('+start+') antes da abertura da barbearia ('+bh.open+').');return;}
+        if(end>bh.close){alert('Fim ('+end+') após o fechamento da barbearia ('+bh.close+').');return;}
+        if(bh.break_start&&bh.break_end){
+          var pi=[];
+          if(bs&&be){pi.push([start,bs],[be,end]);}else{pi.push([start,end]);}
+          for(var i=0;i<pi.length;i++){
+            if(pi[i][0]<bh.break_end&&bh.break_start<pi[i][1]){
+              alert('Expediente conflita com o intervalo da barbearia ('+bh.break_start+'-'+bh.break_end+').');return;
+            }
           }
         }
-      }else{
-        container.style.display='none';
-        container.querySelectorAll('.time-slot, .time-slot-total').forEach(function(sd){
-          sd.classList.remove('selected');
-        });
       }
-      updateCadastro();
+
+      completarAvailData[wd]={start:start,end:end,break_start:bs||null,break_end:be||null};
+      var badge=document.querySelector('#completar-step2 [data-weekday="'+wd+'"]');
+      if(badge){
+        var html='<div>'+fmtFirst(start)+'-'+fmtH(end)+'</div>';
+        if(bs&&be) html+='<div style="font-size:.58rem;opacity:.75;line-height:1">'+fmtFirst(bs)+'-'+fmtH(be)+'</div>';
+        badge.innerHTML=html;
+        badge.style.borderColor='var(--gold)';
+        badge.style.color='var(--gold)';
+        badge.style.padding='.12rem .15rem';
+      }
+      updateCompletarCadastro();
+      closeCompletarAvailModal();
     }
+
     function updateCadastro(){
       var serviceIds=[];
       document.querySelectorAll('[data-service-id].selected').forEach(function(el){serviceIds.push(el.getAttribute('data-service-id'))});
       document.getElementById('service_ids_input').value=serviceIds.join(',');
-      var wds=[];
-      document.querySelectorAll('[data-weekday].selected').forEach(function(el){wds.push(el.getAttribute('data-weekday'))});
+    }
+    function updateCompletarCadastro(){
+      var wds=[],ts=[];
+      for(var wd in completarAvailData){
+        if(!completarAvailData.hasOwnProperty(wd)) continue;
+        wds.push(wd);
+        var d=completarAvailData[wd];
+        if(d.break_start&&d.break_end){
+          ts.push(wd+'|'+d.start+'-'+d.break_start);
+          ts.push(wd+'|'+d.break_end+'-'+d.end);
+        }else{
+          ts.push(wd+'|'+d.start+'-'+d.end);
+        }
+      }
       document.getElementById('weekdays_input').value=wds.join(',');
-      var ts=[];
-      document.querySelectorAll('.time-slot.selected').forEach(function(el){ts.push(el.dataset.value)});
       document.getElementById('time_slots_input').value=ts.join(',');
     }
     </script>
@@ -530,14 +601,15 @@
       {% for p in all_professionals %}
         <div style="display:grid;grid-template-columns:1fr auto;gap:1rem .8rem;{% if not forloop.last %}border-bottom:1px solid rgba(200,169,126,0.08);padding-bottom:.5rem;margin-bottom:.5rem{% endif %}">
           <div style="display:flex;flex-direction:column;gap:1px">
-            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ p.name }}</div>
-            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> {{ p.email }}</div>
-            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg> {{ p.tenant }}</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600" title="{{ p.name }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ p.name|format_name_full }}</div>
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)" title="Email"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> {{ p.email }}</div>
+            {% if p.cpf %}<div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)" title="CPF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> {{ p.cpf }}</div>{% endif %}
+            <div style="display:inline-flex;align-items:center;gap:5px;font-size:.68rem;color:var(--gray-light)" title="Barbearia"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg> {{ p.tenant }}</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:1px;align-items:flex-end;justify-content:center">
             <div style="font-size:.68rem;color:var(--gray-light)">Serviços: {{ p.services_count }}</div>
             <div style="font-size:.68rem;color:var(--gray-light)">Dias disponíveis: {{ p.available_days }}</div>
-            <div style="display:inline-flex;align-items:center;gap:3px">
+            <div style="display:inline-flex;align-items:center;gap:3px;margin-top:4px">
               <form method="post" action="{% url 'core:profissional_toggle_active' p.pk %}" style="display:inline-flex">{% csrf_token %}
                 <button type="submit" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if not p.is_active %}background:rgba(232,160,154,0.15);color:var(--red);border-color:var(--red){% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Inativo</button>
               </form>
@@ -555,7 +627,7 @@
     <!-- Edicao de profissionais -->
     <h2 id="edicao">Edição de profissionais</h2>
     <form method="get" action="{% url 'core:painel' %}" style="display:flex;gap:.4rem;margin-bottom:1rem" id="form-buscar-cpf">
-      <input type="text" name="buscar_cpf" placeholder="CPF do profissional (11 números)" value="{{ request.GET.buscar_cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;flex:1">
+      <input type="text" name="buscar_cpf" placeholder="CPF do profissional (000.000.000-00)" value="{{ request.GET.buscar_cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;flex:1">
       <button type="submit" class="btn btn-admin" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;padding:.3rem .8rem;white-space:nowrap">Buscar</button>
     </form>
     {% if editar_professional %}
@@ -578,96 +650,189 @@
       </div>
       {% endif %}
       {% if editar_weekdays %}
-      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Vínculo de disponibilidade do profissional na barbearia:</div>
+      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Clique em "Definir" para definir a disponibilidade do profissional</div>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem">
         {% for wd, label in editar_weekdays %}
-        <div style="display:flex;flex-direction:column;flex:1 0 auto;gap:4px">
-          <div data-weekday="{{ wd }}" onclick="toggleEditDay(this)" style="font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ label }}</div>
-          <div class="time-slots" data-weekday="{{ wd }}"></div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex:1 0 auto;min-width:0">
+          <div style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid var(--gold);color:var(--gold);background:rgba(200,169,126,0.2);min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">{{ label }}</div>
+          <div data-weekday="{{ wd }}" onclick="openEditAvailModal('{{ wd }}')" style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">Definir</div>
         </div>
         {% endfor %}
       </div>
       {% endif %}
       <button type="submit" class="btn btn-admin" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;margin-top:4px">Salvar alterações</button>
     </form>
+
+    <!-- Modal disponibilidade -->
+    <div id="edit-avail-modal" class="comanda-overlay">
+      <div class="comanda-modal" style="max-width:340px">
+        <div style="margin-bottom:.6rem;font-size:.85rem;font-weight:600">Definir disponibilidade</div>
+        <div id="edit-avail-bh-info" style="font-size:.65rem;color:var(--gray);margin-bottom:.6rem;line-height:1.5;white-space:pre-wrap"></div>
+        <input type="hidden" id="edit-avail-modal-day">
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <div>
+            <label style="font-size:.65rem;color:var(--gray-light);display:block;margin-bottom:.2rem">Início do expediente</label>
+            <input type="time" id="edit-avail-start" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:.65rem;color:var(--gray-light);display:block;margin-bottom:.2rem">Fim do expediente</label>
+            <input type="time" id="edit-avail-end" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+            <div>
+              <label style="font-size:.65rem;color:var(--gray-light);display:block">Início do intervalo</label>
+              <div style="font-size:.58rem;color:var(--gray);margin-bottom:.15rem">(opcional)</div>
+              <input type="time" id="edit-avail-break-start" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:.65rem;color:var(--gray-light);display:block">Fim do intervalo</label>
+              <div style="font-size:.58rem;color:var(--gray);margin-bottom:.15rem">(opcional)</div>
+              <input type="time" id="edit-avail-break-end" style="width:100%;background:var(--black);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem;font-size:.78rem;font-family:inherit;outline:none;border-radius:3px;height:30px;box-sizing:border-box">
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-top:1rem">
+          <button type="button" class="btn btn-accept" onclick="saveEditAvail()" style="flex:1;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Salvar</button>
+          <button type="button" class="btn btn-cancel" onclick="closeEditAvailModal()" style="flex:1;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
     <script>
     var editBhData = {{ editar_bh_data_json|safe }};
-    function toggleEditDay(el){
-      el.classList.toggle('selected');
-      var wd=el.getAttribute('data-weekday');
-      var container=el.parentElement.querySelector('.time-slots');
-      if(el.classList.contains('selected')){
-        container.style.display='flex';
-        if(!container.children.length){
-          var bh=editBhData[wd];
-          if(bh){
-            var slots=[];
-            if(bh.break_start&&bh.break_end){
-              slots.push([bh.open, bh.break_start]);
-              slots.push([bh.break_end, bh.close]);
-            }else{
-              slots.push([bh.open, '12:00']);
-              slots.push(['12:00', '18:00']);
-              slots.push(['18:00', bh.close]);
-            }
-            slots.forEach(function(s){
-              var div=document.createElement('div');
-              div.textContent=fmtFirst(s[0])+'-'+fmtH(s[1]);
-              div.dataset.value=wd+'|'+s[0]+'-'+s[1];
-              div.className='time-slot';
-              div.onclick=function(){
-                this.classList.toggle('selected');
-                refreshTotalState(container);
-                updateEditCadastro();
-              };
-              container.appendChild(div);
-            });
-            var totalDiv=document.createElement('div');
-            totalDiv.textContent='Total';
-            totalDiv.className='time-slot-total';
-            totalDiv.onclick=function(){
-              var sel=this.classList.toggle('selected');
-              container.querySelectorAll('.time-slot').forEach(function(sd){
-                sd.classList.toggle('selected',sel);
-              });
-              updateEditCadastro();
-            };
-            container.appendChild(totalDiv);
-          }
-        }
-      }else{
-        container.style.display='none';
-        container.querySelectorAll('.time-slot, .time-slot-total').forEach(function(sd){
-          sd.classList.remove('selected');
+    var editAvailData = {};
+    var editAvailConflicts = {{ editar_avail_conflicts_json|safe }};
+
+    function openEditAvailModal(wd){
+      var d=editAvailData[wd]||{};
+      var bh=editBhData[wd];
+      var confl=editAvailConflicts[wd];
+      var preencher = bh && !d.start && !(confl&&confl.length);
+      document.getElementById('edit-avail-modal-day').value=wd;
+      document.getElementById('edit-avail-start').value=d.start||(preencher?bh.open:'');
+      document.getElementById('edit-avail-end').value=d.end||(preencher?bh.close:'');
+      document.getElementById('edit-avail-break-start').value=d.break_start||(preencher?(bh.break_start||''):'');
+      document.getElementById('edit-avail-break-end').value=d.break_end||(preencher?(bh.break_end||''):'');
+      var info='';
+      if(bh){
+        info='Barbearia: '+fmtFirst(bh.open)+' às '+fmtH(bh.close);
+        if(bh.break_start&&bh.break_end) info+=' (intervalo '+fmtFirst(bh.break_start)+'-'+fmtH(bh.break_end)+')';
+      }
+      if(confl&&confl.length){
+        info+='\n\n⚠ Já possui horário em:';
+        confl.forEach(function(c){
+          var txt=fmtFirst(c.start)+'-'+fmtH(c.end);
+          if(c.break_start) txt+=' (intervalo '+fmtFirst(c.break_start)+'-'+fmtH(c.break_end)+')';
+          info+='\n'+c.tenant+': '+txt;
         });
       }
-      updateEditCadastro();
+      document.getElementById('edit-avail-bh-info').textContent=info;
+      document.getElementById('edit-avail-modal').classList.add('active');
     }
+
+    function closeEditAvailModal(){
+      document.getElementById('edit-avail-modal').classList.remove('active');
+    }
+
+    function saveEditAvail(){
+      var wd=document.getElementById('edit-avail-modal-day').value;
+      var start=document.getElementById('edit-avail-start').value;
+      var end=document.getElementById('edit-avail-end').value;
+      var bs=document.getElementById('edit-avail-break-start').value;
+      var be=document.getElementById('edit-avail-break-end').value;
+
+      if(!start||!end){alert('Informe início e fim do expediente.');return;}
+      if(start>=end){alert('O fim do expediente deve ser maior que o início.');return;}
+      if((bs&&!be)||(!bs&&be)){alert('Informe início e fim do intervalo, ou deixe ambos vazios.');return;}
+      if(bs&&be){
+        if(be<=bs){alert('O fim do intervalo deve ser maior que o início.');return;}
+        if(bs<start||be>end){alert('O intervalo precisa estar dentro do expediente.');return;}
+      }
+
+      var bh=editBhData[wd];
+      if(bh){
+        if(start<bh.open){alert('Início ('+start+') antes da abertura da barbearia ('+bh.open+').');return;}
+        if(end>bh.close){alert('Fim ('+end+') após o fechamento da barbearia ('+bh.close+').');return;}
+        if(bh.break_start&&bh.break_end){
+          var pi=[];
+          if(bs&&be){pi.push([start,bs],[be,end]);}else{pi.push([start,end]);}
+          for(var i=0;i<pi.length;i++){
+            if(pi[i][0]<bh.break_end&&bh.break_start<pi[i][1]){
+              alert('Expediente conflita com o intervalo da barbearia ('+bh.break_start+'-'+bh.break_end+').');return;
+            }
+          }
+        }
+      }
+
+      editAvailData[wd]={start:start,end:end,break_start:bs||null,break_end:be||null};
+      var badge=document.querySelector('#edit-form [data-weekday="'+wd+'"]');
+      if(badge){
+        var html='<div>'+fmtFirst(start)+'-'+fmtH(end)+'</div>';
+        if(bs&&be) html+='<div style="font-size:.58rem;opacity:.75;line-height:1">'+fmtFirst(bs)+'-'+fmtH(be)+'</div>';
+        badge.innerHTML=html;
+        badge.style.borderColor='var(--gold)';
+        badge.style.color='var(--gold)';
+        badge.style.padding='.12rem .15rem';
+      }
+      updateEditCadastro();
+      closeEditAvailModal();
+    }
+
     function updateEditCadastro(){
-      var serviceIds=[];
-      document.querySelectorAll('#edit-form [data-service-id].selected').forEach(function(el){serviceIds.push(el.getAttribute('data-service-id'))});
-      document.getElementById('edit_service_ids_input').value=serviceIds.join(',');
-      var wds=[];
-      document.querySelectorAll('#edit-form [data-weekday].selected').forEach(function(el){wds.push(el.getAttribute('data-weekday'))});
+      var sids=[];
+      document.querySelectorAll('#edit-form [data-service-id].selected').forEach(function(el){sids.push(el.getAttribute('data-service-id'))});
+      document.getElementById('edit_service_ids_input').value=sids.join(',');
+      var wds=[],ts=[];
+      for(var wd in editAvailData){
+        if(!editAvailData.hasOwnProperty(wd)) continue;
+        wds.push(wd);
+        var d=editAvailData[wd];
+        if(d.break_start&&d.break_end){
+          ts.push(wd+'|'+d.start+'-'+d.break_start);
+          ts.push(wd+'|'+d.break_end+'-'+d.end);
+        }else{
+          ts.push(wd+'|'+d.start+'-'+d.end);
+        }
+      }
       document.getElementById('edit_weekdays_input').value=wds.join(',');
-      var ts=[];
-      document.querySelectorAll('#edit-form .time-slot.selected').forEach(function(el){ts.push(el.dataset.value)});
       document.getElementById('edit_time_slots_input').value=ts.join(',');
     }
-    initEditData();
-    function initEditData(){
+
+    (function initEditData(){
       var wds=(document.getElementById('edit_weekdays_input').value||'').split(',').filter(Boolean);
       var ts=(document.getElementById('edit_time_slots_input').value||'').split(',').filter(Boolean);
+      var sm={};
+      ts.forEach(function(sv){
+        var p=sv.split('|'),day=p[0],r=p[1].split('-');
+        if(!sm[day]) sm[day]={start:null,end:null,break_start:null,break_end:null};
+        if(sm[day].start===null||r[0]<sm[day].start) sm[day].start=r[0];
+        if(sm[day].end===null||r[1]>sm[day].end) sm[day].end=r[1];
+      });
+      var dc={};
+      ts.forEach(function(sv){var d=sv.split('|')[0];dc[d]=(dc[d]||0)+1;});
+      for(var day in dc){
+        if(dc[day]===2){
+          var ds=ts.filter(function(s){return s.startsWith(day+'|');}).sort();
+          var gs=ds[0].split('|')[1].split('-')[1];
+          var ge=ds[1].split('|')[1].split('-')[0];
+          if(sm[day]){sm[day].break_start=gs;sm[day].break_end=ge;}
+        }
+      }
+      for(var day in sm){editAvailData[day]=sm[day];}
       wds.forEach(function(wd){
         var badge=document.querySelector('#edit-form [data-weekday="'+wd+'"]');
-        if(badge&&!badge.classList.contains('selected')) badge.click();
+        if(!badge) return;
+        var d=editAvailData[wd];
+        if(d&&d.start&&d.end){
+          var html='<div>'+fmtFirst(d.start)+'-'+fmtH(d.end)+'</div>';
+          if(d.break_start&&d.break_end) html+='<div style="font-size:.58rem;opacity:.75;line-height:1">'+fmtFirst(d.break_start)+'-'+fmtH(d.break_end)+'</div>';
+          badge.innerHTML=html;
+          badge.style.borderColor='var(--gold)';
+          badge.style.color='var(--gold)';
+          badge.style.padding='.12rem .15rem';
+        }
       });
-      ts.forEach(function(slotVal){
-        var parts=slotVal.split('|');
-        var sd=document.querySelector('#edit-form .time-slots[data-weekday="'+parts[0]+'"] .time-slot[data-value="'+slotVal+'"]');
-        if(sd&&!sd.classList.contains('selected')) sd.click();
-      });
-    }
+    })();
     </script>
     {% endif %}
     {% endif %}

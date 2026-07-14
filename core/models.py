@@ -547,7 +547,7 @@ class ProfessionalInvitation(TenantOwnedModel):
     """Convite de uma barbearia para um profissional existente."""
 
     class Status(models.TextChoices):
-        PENDING = "pending", _("Aguardando aprovacao")
+        PENDING = "pending", _("Analise")
         ACCEPTED = "accepted", _("Aceito")
         REJECTED = "rejected", _("Rejeitado")
         CANCELLED = "cancelled", _("Cancelado")
@@ -592,7 +592,7 @@ class ProfessionalInvitation(TenantOwnedModel):
         from django.utils import timezone
 
         if self.status != self.Status.PENDING:
-            raise ValidationError(_("Apenas convites aguardando aprovacao podem ser aceitos."))
+            raise ValidationError(_("Apenas convites em analise podem ser aceitos."))
         membership, _created = TenantMembership.objects.bypass_tenant().get_or_create(
             tenant=self.tenant,
             user=self.professional_user,
@@ -619,7 +619,7 @@ class ProfessionalInvitation(TenantOwnedModel):
         from django.utils import timezone
 
         if self.status != self.Status.PENDING:
-            raise ValidationError(_("Apenas convites aguardando aprovacao podem ser rejeitados."))
+            raise ValidationError(_("Apenas convites em analise podem ser rejeitados."))
         self.status = self.Status.REJECTED
         self.responded_at = timezone.now()
         self.save(update_fields=("status", "responded_at", "updated_at"))
@@ -629,7 +629,7 @@ class ProfessionalInvitation(TenantOwnedModel):
         from django.utils import timezone
 
         if self.status != self.Status.PENDING:
-            raise ValidationError(_("Apenas convites aguardando aprovacao podem ser cancelados."))
+            raise ValidationError(_("Apenas convites em analise podem ser cancelados."))
         self.status = self.Status.CANCELLED
         self.responded_at = timezone.now()
         self.save(update_fields=("status", "responded_at", "updated_at"))
