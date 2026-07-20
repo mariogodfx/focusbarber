@@ -164,6 +164,10 @@
       background: rgba(200,169,126,0.1); color: var(--gold-light);
       border: 1px solid rgba(200,169,126,0.2);
     }
+    [data-service-id].selected { border-color:transparent !important; background:rgba(200,169,126,0.2) !important; color:var(--gold) !important; }
+    [data-service-id]:not(.selected):hover { border-color:rgba(200,169,126,0.5) !important; }
+    [data-weekday]:hover { border-color:rgba(200,169,126,0.5) !important; }
+    [data-weekday-label]:hover { border-color:rgba(200,169,126,0.5) !important; }
     .form-inline { display:flex; gap:.35rem; align-items:center; flex-wrap:wrap; }
     .form-inline select, .form-inline input[type=number] {
       background:var(--black-medium); color:var(--white); border:1px solid rgba(200,169,126,0.2);
@@ -174,17 +178,18 @@
     .empty { color: var(--gray); font-size:.85rem; padding:1rem 1.2rem; text-align:center; background: var(--black-light); border: 1px solid rgba(200,169,126,0.1); margin-bottom:.8rem; }
 
     /* Custom dropdown */
-    .custom-select { position:relative; display:inline-block; }
+    .custom-select { position:relative; display:block; }
     .custom-select-trigger {
-      display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+      display:flex; align-items:center;
       background:var(--black-medium); color:var(--white); border:1px solid rgba(200,169,126,0.2);
-      padding:.35rem .8rem; font-size:9px; font-family:inherit; height:32px;
+      padding:.35rem .5rem; font-size:9px; font-family:inherit; height:32px;
       cursor:pointer; box-sizing:border-box; white-space:nowrap; border-radius:3px;
+      width:100%;
     }
     .custom-select-trigger::after {
       content:''; width:0; height:0; border-left:4px solid transparent;
       border-right:4px solid transparent; border-top:5px solid var(--gold);
-      flex-shrink:0;
+      margin-left:auto; flex-shrink:0;
     }
     .custom-select.open .custom-select-trigger { border-color:var(--gold); }
     .custom-select-options {
@@ -293,10 +298,12 @@
       {% endif %}
 
       <h2>Convidar profissional</h2>
-      <div class="card">
-        <form method="post" action="{% url 'core:convite_enviar' %}" class="form-inline" style="flex-wrap:nowrap">{% csrf_token %}
-          <input type="email" name="email" placeholder="E-mail do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;min-width:160px;border-radius:3px;flex-shrink:1">
-          <div class="custom-select" data-required="true">
+      <form method="post" action="{% url 'core:convite_enviar' %}" style="display:grid;grid-template-columns:2fr 1fr;gap:.5rem;align-items:end">{% csrf_token %}
+        <div>
+          <input type="email" name="email" placeholder="E-mail do profissional" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:100%;border-radius:3px">
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <div class="custom-select" data-required="true" style="flex:1">
             <input type="hidden" name="tenant_id" value="">
             <button type="button" class="custom-select-trigger">Barbearia</button>
             <div class="custom-select-options">
@@ -308,8 +315,8 @@
           <button type="submit" class="btn btn-accept" style="height:32px;width:32px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:3px;flex-shrink:0" title="Convidar">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22 11 13 2 9z"/></svg>
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
 
       <h2>Convites recebidos</h2>
       {% if invitations %}
@@ -386,22 +393,7 @@
     <!-- Cadastro de profissionais -->
     <h2>Cadastro de profissionais</h2>
     <form method="post" action="{% url 'core:profissional_cadastrar' %}" style="display:flex;flex-direction:column;gap:.45rem;margin-bottom:1rem">{% csrf_token %}
-      <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
-        {% if admin_tenants|length == 1 %}
-          <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:30px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
-          <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
-        {% else %}
-        <div class="custom-select" data-required="true" style="width:100%">
-          <input type="hidden" name="tenant_id" value="{{ request.session.cadastro_data.tenant_id|default:'' }}">
-          <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
-          <div class="custom-select-options">
-            {% for t in admin_tenants %}
-              <div data-value="{{ t.id }}">{{ t.name }}</div>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-        <input type="email" name="email" placeholder="Email do profissional" required value="{{ request.session.cadastro_data.email|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+      <div style="display:grid;grid-template-columns:0.6fr 1fr;gap:.4rem">
         <div class="custom-select" data-required="true" style="width:100%">
           <input type="hidden" name="role" value="{{ request.session.cadastro_data.role|default:'' }}">
           <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Perfil</button>
@@ -415,18 +407,33 @@
             <div data-value="professional">Profissional</div>
           </div>
         </div>
+        <div>
+          {% if admin_tenants|length == 1 %}
+            <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:30px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
+            <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
+          {% else %}
+          <div class="custom-select" data-required="true" style="width:100%">
+            <input type="hidden" name="tenant_id" value="{{ request.session.cadastro_data.tenant_id|default:'' }}">
+            <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
+            <div class="custom-select-options">
+              {% for t in admin_tenants %}
+                <div data-value="{{ t.id }}">{{ t.name }}</div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <input type="text" name="cpf" placeholder="CPF (000.000.000-00)" required value="{{ request.session.cadastro_data.cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         <input type="text" name="name" placeholder="Nome completo do profissional" required value="{{ request.session.cadastro_data.name|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <input type="text" name="phone" placeholder="Telefone" value="{{ request.session.cadastro_data.phone|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
+        <input type="email" name="email" placeholder="Email do profissional" required value="{{ request.session.cadastro_data.email|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         <input type="password" name="password" placeholder="Senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         <div style="display:flex;gap:.4rem;align-items:center">
-          <input type="text" name="cpf" placeholder="CPF (000.000.000-00)" required value="{{ request.session.cadastro_data.cpf|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
-          <input type="text" name="phone" placeholder="Telefone" value="{{ request.session.cadastro_data.phone|default:'' }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
-        </div>
-        <input type="password" name="confirm_password" placeholder="Repetir" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
-        <div style="display:flex">
+          <input type="password" name="confirm_password" placeholder="Repetir senha" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
           {% if request.GET.completar %}
-          <div style="font-size:.78rem;color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .7rem;border-radius:3px;display:flex;align-items:center;justify-content:center;height:30px;background:var(--black-medium);width:100%">Selecione os servicos</div>
+          <div style="font-size:.78rem;color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .7rem;border-radius:3px;display:flex;align-items:center;justify-content:center;height:30px;background:var(--black-medium);flex-shrink:0;white-space:nowrap">Selecione os servicos</div>
           {% else %}
-          <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;width:100%">Avancar</button>
+          <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0;padding:0 .8rem">Avancar</button>
           {% endif %}
         </div>
       </div>
@@ -454,7 +461,7 @@
       <div style="display:flex;flex-wrap:wrap;gap:.4rem">
         {% for wd, label in completar_weekdays %}
         <div style="display:flex;flex-direction:column;gap:2px;flex:1 0 auto;min-width:0">
-          <div style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid var(--gold);color:var(--gold);background:rgba(200,169,126,0.2);min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">{{ label }}</div>
+          <div data-weekday-label="{{ wd }}" style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid var(--gold);color:var(--gold);background:rgba(200,169,126,0.2);min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">{{ label }}</div>
           <div data-weekday="{{ wd }}" onclick="openCompletarAvailModal('{{ wd }}')" style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">Definir</div>
         </div>
         {% endfor %}
@@ -642,10 +649,10 @@
         <input type="text" name="phone" placeholder="Telefone" value="{{ editar_user.phone }}" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
       </div>
       {% if editar_services %}
-      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Serviços da barbearia vinculados ao profissional:</div>
+      <div style="font-size:.68rem;color:var(--gray-light);margin-bottom:.1rem">Serviços vinculados ao profissional:</div>
       <div style="display:flex;flex-wrap:wrap;gap:.4rem">
         {% for s in editar_services %}
-        <div data-service-id="{{ s.id }}" onclick="this.classList.toggle('selected');updateEditCadastro()" class="{% if s.id in editar_selected_service_ids %}selected {% endif %}" style="flex:1 0 auto;font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ s.name }}</div>
+        <div data-service-id="{{ s.id }}" onclick="this.classList.toggle('selected');updateEditCadastro()" class="{% if s.id in editar_selected_service_ids %}selected {% endif %}" style="flex:1 0 auto;font-size:.72rem;padding:.2rem .6rem;border-radius:5px;border:1px solid rgba(200,169,126,0.2);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;height:28px;display:inline-flex;align-items:center;justify-content:center;user-select:none;text-align:center">{{ s.name }}</div>
         {% endfor %}
       </div>
       {% endif %}
@@ -654,7 +661,7 @@
       <div style="display:flex;flex-wrap:wrap;gap:.4rem">
         {% for wd, label in editar_weekdays %}
         <div style="display:flex;flex-direction:column;gap:2px;flex:1 0 auto;min-width:0">
-          <div style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid var(--gold);color:var(--gold);background:rgba(200,169,126,0.2);min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">{{ label }}</div>
+          <div data-weekday-label="{{ wd }}" style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid rgba(200,169,126,0.2);color:var(--white);background:var(--black-medium);min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">{{ label }}</div>
           <div data-weekday="{{ wd }}" onclick="openEditAvailModal('{{ wd }}')" style="font-size:.72rem;padding:.15rem .2rem;border-radius:5px;border:1px solid rgba(200,169,126,0.3);cursor:pointer;color:var(--gray-light);background:transparent;transition:all .2s;min-height:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;user-select:none;text-align:center;gap:1px;line-height:1.2">Definir</div>
         </div>
         {% endfor %}
@@ -768,7 +775,6 @@
       var badge=document.querySelector('#edit-form [data-weekday="'+wd+'"]');
       if(badge){
         var html='<div>'+fmtFirst(start)+'-'+fmtH(end)+'</div>';
-        if(bs&&be) html+='<div style="font-size:.58rem;opacity:.75;line-height:1">'+fmtFirst(bs)+'-'+fmtH(be)+'</div>';
         badge.innerHTML=html;
         badge.style.borderColor='var(--gold)';
         badge.style.color='var(--gold)';
@@ -825,11 +831,11 @@
         var d=editAvailData[wd];
         if(d&&d.start&&d.end){
           var html='<div>'+fmtFirst(d.start)+'-'+fmtH(d.end)+'</div>';
-          if(d.break_start&&d.break_end) html+='<div style="font-size:.58rem;opacity:.75;line-height:1">'+fmtFirst(d.break_start)+'-'+fmtH(d.break_end)+'</div>';
-          badge.innerHTML=html;
-          badge.style.borderColor='var(--gold)';
-          badge.style.color='var(--gold)';
-          badge.style.padding='.12rem .15rem';
+        badge.innerHTML=html;
+        badge.style.borderColor='transparent';
+        badge.style.backgroundColor='rgba(200,169,126,0.2)';
+        badge.style.color='var(--gold)';
+        badge.style.padding='.12rem .15rem';
         }
       });
     })();
@@ -1042,20 +1048,29 @@
     <h2>Produtos</h2>
     {% if pode_convidar %}
     <div style="margin-bottom:1rem">
-      <form method="post" action="{% url 'core:produto_criar' %}" class="form-inline">{% csrf_token %}
-        <div class="custom-select" data-required="true">
-          <input type="hidden" name="tenant_id" value="">
-          <button type="button" class="custom-select-trigger">Barbearia</button>
-          <div class="custom-select-options">
-            {% for t in admin_tenants %}
-              <div data-value="{{ t.id }}">{{ t.name }}</div>
-            {% endfor %}
+      <form method="post" action="{% url 'core:produto_criar' %}" style="display:flex;flex-direction:column;gap:.4rem">{% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+          {% if admin_tenants|length == 1 %}
+          <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:32px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
+          <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
+          {% else %}
+          <div class="custom-select" data-required="true" style="width:100%">
+            <input type="hidden" name="tenant_id" value="">
+            <button type="button" class="custom-select-trigger">Barbearia</button>
+            <div class="custom-select-options">
+              {% for t in admin_tenants %}
+                <div data-value="{{ t.id }}">{{ t.name }}</div>
+              {% endfor %}
+            </div>
           </div>
+          {% endif %}
+          <input type="text" name="name" placeholder="Nome do produto" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;border-radius:3px;width:100%">
         </div>
-        <input type="text" name="name" placeholder="Nome do produto" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;border-radius:3px">
-        <input type="text" name="price" placeholder="Preco" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:80px;border-radius:3px">
-        <input type="number" name="quantity" placeholder="Estoque" value="0" min="0" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;width:70px;border-radius:3px">
-        <button type="submit" class="btn btn-accept" style="height:32px;display:inline-flex;align-items:center">Criar</button>
+        <div style="display:grid;grid-template-columns:0.8fr 0.5fr 0.5fr;gap:.4rem">
+          <input type="text" name="price" placeholder="Preco" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;border-radius:3px;width:100%">
+          <input type="number" name="quantity" placeholder="Estoque" value="0" min="0" style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.35rem .5rem;font-size:.75rem;font-family:inherit;outline:none;height:32px;box-sizing:border-box;border-radius:3px;width:100%">
+          <button type="submit" class="btn btn-accept" style="height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:3px">Criar</button>
+        </div>
       </form>
     </div>
     {% endif %}
@@ -1103,8 +1118,13 @@
     {% if pode_convidar %}
     <h2>Servicos da barbearia</h2>
     <div style="margin-bottom:1rem">
-      <form method="post" action="{% url 'core:servico_criar' %}" style="display:flex;flex-direction:column;gap:.45rem">{% csrf_token %}
+      <form method="post" action="{% url 'core:servico_criar' %}" id="servico-form" style="display:flex;flex-direction:column;gap:.45rem">{% csrf_token %}
+        <input type="hidden" name="servico_id" id="servico_id" value="">
         <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
+          {% if admin_tenants|length == 1 %}
+          <div style="display:flex;align-items:center;background:var(--black-medium);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;height:30px;box-sizing:border-box;border-radius:3px;color:var(--white)">{{ admin_tenants.0.name }}</div>
+          <input type="hidden" name="tenant_id" value="{{ admin_tenants.0.id }}">
+          {% else %}
           <div class="custom-select" data-required="true" style="width:100%">
             <input type="hidden" name="tenant_id" value="">
             <button type="button" class="custom-select-trigger" style="height:30px;padding:.3rem .7rem;font-size:.72rem;width:100%">Barbearia</button>
@@ -1114,6 +1134,7 @@
               {% endfor %}
             </div>
           </div>
+          {% endif %}
           <input type="text" name="name" placeholder="Nome do servico" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
         </div>
         <div style="display:grid;grid-template-columns:1fr 2fr;gap:.4rem">
@@ -1129,7 +1150,7 @@
           </div>
           <div style="display:flex;gap:.4rem;align-items:center">
             <input type="text" name="price" placeholder="Valor" required style="background:var(--black-medium);color:var(--white);border:1px solid rgba(200,169,126,0.2);padding:.3rem .6rem;font-size:.78rem;font-family:inherit;outline:none;height:30px;box-sizing:border-box;border-radius:3px;width:100%">
-            <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;white-space:nowrap;border-radius:3px">Criar</button>
+            <button type="submit" class="btn btn-accept" style="height:30px;display:inline-flex;align-items:center;white-space:nowrap;border-radius:3px;padding:.3rem .5rem">Criar</button>
           </div>
         </div>
       </form>
@@ -1152,6 +1173,7 @@
                 <form method="post" action="{% url 'core:servico_toggle_active' s.pk %}" style="display:inline-flex">{% csrf_token %}
                   <button type="submit" title="Ativar servico" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid;cursor:pointer;font-family:inherit;{% if s.is_active %}background:rgba(160,208,160,0.15);color:var(--green);border-color:var(--green){% else %}background:transparent;color:var(--gray);border-color:var(--gray){% endif %}">Ativo</button>
                 </form>
+                <button type="button" title="Editar servico" onclick="editarServico({{ s.id }}, '{{ s.name|escapejs }}', '{{ s.price|floatformat:2 }}', {{ s.duration_minutes }}, {{ s.tenant_id }})" style="font-size:.62rem;padding:.1rem .5rem;border-radius:999px;height:18px;display:inline-flex;align-items:center;border:1px solid var(--gold);cursor:pointer;font-family:inherit;background:transparent;color:var(--gold)">Editar</button>
               </div>
             </div>
           </div>
@@ -1300,6 +1322,54 @@
         return confirm('Tem certeza que quer alterar para R$ ' + novo.toFixed(2) + ' ? O valor do atendimento foi R$ ' + original.toFixed(2));
       }
       return true;
+    }
+
+    var editandoServico = false;
+
+    function editarServico(id, name, price, duration, tenantId) {
+      var form = document.getElementById('servico-form');
+      form.action = "{% url 'core:servico_editar' 0 %}".replace('/0/', '/' + id + '/');
+      document.getElementById('servico_id').value = id;
+      form.querySelector('[name=name]').value = name;
+      form.querySelector('[name=price]').value = price;
+      var durOpts = form.querySelectorAll('.custom-select-options div');
+      durOpts.forEach(function(o) {
+        if (o.getAttribute('data-value') == duration) {
+          var trigger = form.querySelector('.custom-select-trigger');
+          trigger.childNodes[0].textContent = o.textContent;
+          form.querySelector('[name=duration]').value = duration;
+          o.classList.add('selected');
+        } else {
+          o.classList.remove('selected');
+        }
+      });
+      var submitBtn = form.querySelector('.btn-accept');
+      submitBtn.textContent = 'Salvar';
+      var cancelBtn = document.getElementById('cancelar-edicao-servico');
+      if (!cancelBtn) {
+        cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.id = 'cancelar-edicao-servico';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.style.cssText = 'height:30px;display:inline-flex;align-items:center;white-space:nowrap;border-radius:3px;background:transparent;color:var(--gray-light);border:1px solid rgba(200,169,126,0.2);cursor:pointer;font-family:inherit;font-size:.72rem;padding:0 .5rem';
+        cancelBtn.onclick = cancelarEdicaoServico;
+        submitBtn.parentNode.insertBefore(cancelBtn, submitBtn);
+      }
+    }
+
+    function cancelarEdicaoServico() {
+      var form = document.getElementById('servico-form');
+      form.action = "{% url 'core:servico_criar' %}";
+      document.getElementById('servico_id').value = '';
+      form.querySelector('[name=name]').value = '';
+      form.querySelector('[name=price]').value = '';
+      form.querySelector('[name=duration]').value = '';
+      var trigger = form.querySelector('.custom-select-trigger');
+      trigger.childNodes[0].textContent = 'Duracao';
+      var submitBtn = form.querySelector('.btn-accept');
+      submitBtn.textContent = 'Criar';
+      var cancelBtn = document.getElementById('cancelar-edicao-servico');
+      if (cancelBtn) cancelBtn.remove();
     }
 
   </script>

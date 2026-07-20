@@ -1100,6 +1100,49 @@ def servico_criar(request):
 
 
 @login_required
+def servico_editar(request, pk):
+    if request.method != "POST":
+        return redirect("core:painel")
+    servico = get_object_or_404(Service.objects.bypass_tenant(), pk=pk)
+    pode_gerenciar = (
+        request.user.role in ("owner", "manager") or request.user.is_superadmin
+        or TenantMembership.objects.bypass_tenant()
+        .filter(user=request.user, tenant=servico.tenant,
+                role__in=[TenantMembership.Role.OWNER, TenantMembership.Role.MANAGER],
+                is_active=True)
+        .exists()
+    )
+    if not pode_gerenciar:
+        messages.error(request, "Voce nao tem permissao para editar servicos.")
+        return redirect("core:painel")
+    name = request.POST.get("name", "").strip()
+    price = request.POST.get("price", "").strip()
+    duration = request.POST.get("duration", "").strip()
+    if not name or not price or not duration:
+        messages.error(request, "Nome, preco e duracao sao obrigatorios.")
+        return redirect("core:painel")
+    try:
+        price = Decimal(price)
+    except Exception:
+        messages.error(request, "Preco invalido.")
+        return redirect("core:painel")
+    try:
+        duration = int(duration)
+    except (ValueError, TypeError):
+        messages.error(request, "Duracao invalida.")
+        return redirect("core:painel")
+    if duration not in dict(Service.DURATION_CHOICES):
+        messages.error(request, "Duracao invalida.")
+        return redirect("core:painel")
+    servico.name = name
+    servico.price = price
+    servico.duration_minutes = duration
+    servico.save()
+    messages.success(request, "Servico '{}' atualizado.".format(name))
+    return redirect("core:painel")
+
+
+@login_required
 def servico_toggle_active(request, pk):
     if request.method != "POST":
         return redirect("core:painel")
